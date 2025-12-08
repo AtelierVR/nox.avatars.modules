@@ -55,7 +55,7 @@ namespace Nox.CCK.Avatars.Rigging {
 			// Utilise RigBuilder (legacy)
 			var rik = anchor.GetOrAddComponent<RigBuilderAvatarModule>();
 			rik.Descriptor = runtime.GetDescriptor();
-			IKRigGenerator.CreateIKRig(rik);
+			RigBuilderRigGenerator.CreateIKRig(rik);
 			#endif
 
 			var module = anchor.GetComponent<BaseRiggingModule>();
