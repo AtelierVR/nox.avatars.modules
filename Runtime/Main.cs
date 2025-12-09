@@ -21,8 +21,9 @@ namespace Nox.Avatars.Modules.Runtime {
 			_events = new[] {
 				api.EventAPI.Subscribe("avatar_check_request", OnCheckRequest),
 			};
-			PlayableAvatarModule.GetAssetController = () 
-				=> CoreAPI.AssetAPI.GetAsset<RuntimeAnimatorController>("avatar", "animations/Default.controller");
+			PlayableAvatarModule.GetAssetController =
+				() => CoreAPI.AssetAPI.GetAsset<RuntimeAnimatorController>("avatar", "animations/Default.controller");
+			CoreAPI.LoggerAPI.LogDebug("Avatar modules initialized.");
 		}
 
 		private static void OnCheckRequest(EventData context) {
@@ -41,11 +42,8 @@ namespace Nox.Avatars.Modules.Runtime {
 		public void OnDisposeMain() {
 			foreach (var e in _events)
 				CoreAPI.EventAPI.Unsubscribe(e);
-
 			_events = Array.Empty<EventSubscription>();
-
 			PlayableAvatarModule.GetAssetController = null;
-
 			CoreAPI = null;
 		}
 	}

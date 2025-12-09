@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <linker>
 	<assembly fullname="Nox.Avatars.Camera" preserve="all" />
+	<assembly fullname="nox.avatars.modules" preserve="all" />
 	<assembly fullname="Nox.Avatars.Modules.Runtime" preserve="all" />
 	<assembly fullname="Nox.Avatars.Parameters" preserve="all" />
 	<assembly fullname="Nox.Avatars.Rigging" preserve="all" />

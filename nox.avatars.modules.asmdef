@@ -1,0 +1,32 @@
+{
+  "name": "nox.avatars.modules",
+  "rootNamespace": "",
+  "references": [
+    "Nox.Avatars.Modules.Runtime",
+    "Nox.CCK.Avatars.Camera",
+    "Nox.CCK.Avatars.EyeLooks",
+    "Nox.CCK.Avatars.Parameters",
+    "Nox.CCK.Avatars.Playable",
+    "Nox.CCK.Avatars.Proxies",
+    "Nox.CCK.Avatars.Rigging",
+    "Nox.CCK.Avatars.StateMachines",
+    "Nox.CCK.Avatars.Voice",
+    "Nox.Avatars.Camera",
+    "Nox.Avatars.Parameters",
+    "Nox.Avatars.Rigging",
+    "Nox.Avatars.StateMachines",
+    "Nox.Avatars.Voice",
+    "Nox.Avatars",
+    "Nox.CCK",
+    "UniTask"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
