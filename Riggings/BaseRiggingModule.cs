@@ -23,6 +23,10 @@ namespace Nox.CCK.Avatars.Rigging {
 
 		public abstract void SetActive(HumanBodyBones bone, bool active);
 
+		
+		public int GetPriority()
+			=> 0;
+		
 		public async UniTask<bool> Setup(IRuntimeAvatar runtime) {
 			// Vérification de sécurité pour éviter les NullReferenceException
 			if (runtime == null) {
@@ -77,6 +81,7 @@ namespace Nox.CCK.Avatars.Rigging {
 				return false;
 			}
 
+			await UniTask.Yield();
 			return true;
 		}
 

@@ -12,6 +12,9 @@ namespace Nox.CCK.Avatars.Proxies {
 	public class ProxiesAvatarModule : MonoBehaviour, IAvatarModule {
 		public ReplaceClip[] clips;
 
+		public int GetPriority()
+			=> 0;
+		
 		public async UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar) {
 			if (clips == null || clips.Length == 0) {
 				Logger.LogWarning("Aucun clip de remplacement spécifié");

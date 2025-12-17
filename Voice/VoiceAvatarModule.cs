@@ -14,6 +14,10 @@ namespace Nox.CCK.Avatars.Voice {
 
 		private AudioSource _audioSource;
 
+
+		public int GetPriority()
+			=> 0;
+
 		public async UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar) {
 			await UniTask.Yield();
 			var descriptor = runtimeAvatar.GetDescriptor();
@@ -63,12 +67,11 @@ namespace Nox.CCK.Avatars.Voice {
 				_ => null
 			};
 
-			if (module) 
+			if (module)
 				return true;
-			
+
 			Logger.LogError("Verify that the Avatar prefab has a valid CameraAvatarModule component.", descriptor.GetAnchor());
 			return false;
-
 		}
 	}
 }

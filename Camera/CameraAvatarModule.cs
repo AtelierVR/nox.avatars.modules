@@ -12,6 +12,9 @@ namespace Nox.CCK.Avatars.Camera {
 		public Vector3   cameraOffset = Vector3.zero;
 		public Transform headTransform;
 
+		
+		public int GetPriority()
+			=> 0;
 
 		public async UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar) {
 			await UniTask.Yield();

@@ -2,8 +2,6 @@
     "name": "Nox.CCK.Avatars.Common",
     "rootNamespace": "",
     "references": [
-        "Nox.Avatars",
-        "Nox.Avatars.Parameters",
         "Nox.CCK",
         "UniTask"
     ],

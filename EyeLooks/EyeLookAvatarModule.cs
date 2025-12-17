@@ -19,6 +19,9 @@ namespace Nox.CCK.Avatars.EyeLooks {
 		public void SetEyeLooks(BaseEyeLook[] value)
 			=> eyeLooks = value ?? Array.Empty<BaseEyeLook>();
 
+		public int GetPriority()
+			=> 0;
+
 		public async UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar) {
 			await UniTask.Yield();
 			_descriptor = runtimeAvatar.GetDescriptor();

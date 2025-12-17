@@ -8,6 +8,7 @@
 	<assembly fullname="Nox.Avatars.StateMachines" preserve="all" />
 	<assembly fullname="Nox.Avatars.Voice" preserve="all" />
 	<assembly fullname="Nox.CCK.Avatars.Camera" preserve="all" />
+	<assembly fullname="Nox.CCK.Avatars.Common" preserve="all" />
 	<assembly fullname="Nox.CCK.Avatars.EyeLooks" preserve="all" />
 	<assembly fullname="Nox.CCK.Avatars.Modules.Editor" preserve="all" />
 	<assembly fullname="Nox.CCK.Avatars.Parameters" preserve="all" />

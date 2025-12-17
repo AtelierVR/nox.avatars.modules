@@ -6,7 +6,8 @@
         "Nox.Avatars",
         "Nox.CCK.Avatars.StateMachines",
         "Nox.Avatars.StateMachines",
-        "UniTask"
+        "UniTask",
+        "Nox.CCK.Avatars.Common"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

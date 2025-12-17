@@ -4,6 +4,7 @@
     "references": [
         "Nox.Avatars",
         "Nox.Avatars.Parameters",
+        "Nox.CCK.Avatars.Common",
         "Nox.CCK",
         "UniTask"
     ],

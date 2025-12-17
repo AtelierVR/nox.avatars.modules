@@ -4,6 +4,7 @@ using System.Linq;
 using Cysharp.Threading.Tasks;
 using Nox.Avatars;
 using Nox.Avatars.Parameters;
+using Nox.CCK.Avatars.Common;
 using UnityEngine;
 using UnityEngine.Animations;
 using UnityEngine.Playables;
@@ -33,6 +34,9 @@ namespace Nox.CCK.Avatars.Parameters {
 
 		private readonly Dictionary<int, object> _history = new();
 
+		public int GetPriority()
+			=> 100;
+
 		public async UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar) {
 			await UniTask.Yield();
 			Runtime = runtimeAvatar;
@@ -59,7 +63,11 @@ namespace Nox.CCK.Avatars.Parameters {
 			}
 
 			// Ajout des paramètres des contrôleurs d'animation
-			var controllers = GetAllControllers();
+			var controllers = Runtime
+					?.GetDescriptor()
+					?.GetAnimator()
+					.GetControllers()
+				?? Array.Empty<AnimatorControllerPlayable>();
 
 			foreach (var controller in controllers) {
 				for (var i = 0; i < controller.GetParameterCount(); i++) {
@@ -96,32 +104,6 @@ namespace Nox.CCK.Avatars.Parameters {
 		public IParameter GetParameter(int hash)
 			=> GetParameters().FirstOrDefault(p => p.GetKey() == hash);
 
-		private AnimatorControllerPlayable[] GetAllControllers() {
-			var animator    = Runtime?.GetDescriptor()?.GetAnimator();
-			var controllers = new List<AnimatorControllerPlayable>();
-			if (!animator) return controllers.ToArray();
-			for (var i = 0; i < animator.playableGraph.GetRootPlayableCount(); i++)
-				controllers.AddRange(RecursiveController(animator.playableGraph.GetRootPlayable(i)));
-			return controllers.ToArray();
-		}
-
-		private static AnimatorControllerPlayable[] RecursiveController(Playable playable) {
-			var controllers = new List<AnimatorControllerPlayable>();
-
-			if (!playable.IsValid())
-				return controllers.ToArray();
-
-			if (playable.GetPlayableType() == typeof(AnimatorControllerPlayable))
-				controllers.Add((AnimatorControllerPlayable)playable);
-
-			for (var i = 0; i < playable.GetInputCount(); i++) {
-				var input = playable.GetInput(i);
-				controllers.AddRange(RecursiveController(input));
-			}
-
-			return controllers.ToArray();
-		}
-
 		private static object GetValue(AnimatorControllerParameter parameter)
 			=> parameter.type switch {
 				AnimatorControllerParameterType.Float => parameter.defaultFloat,
@@ -132,7 +114,7 @@ namespace Nox.CCK.Avatars.Parameters {
 
 		public void Update() {
 			var animator = Runtime?.GetDescriptor()?.GetAnimator();
-			if (!animator) return;
+			if (!animator || !animator.runtimeAnimatorController) return;
 
 			// Récupération des paramètres de l'Animator
 			foreach (var parameter in animator.parameters) {
