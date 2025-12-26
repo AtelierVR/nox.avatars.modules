@@ -12,18 +12,22 @@ namespace Nox.CCK.Avatars.Camera {
 		public Vector3   cameraOffset = Vector3.zero;
 		public Transform headTransform;
 
-		
+		private IRuntimeAvatar _runtimeAvatar;
+
+
 		public int GetPriority()
 			=> 0;
 
 		public async UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar) {
+			_runtimeAvatar = runtimeAvatar;
+
 			await UniTask.Yield();
-			var descriptor = runtimeAvatar.GetDescriptor();
+			var descriptor = _runtimeAvatar.GetDescriptor();
 
 			// Try to get head transform from animator bones
 			if (!headTransform) {
 				var animator = descriptor.GetAnimator();
-				if (animator) 
+				if (animator)
 					headTransform = animator.GetBoneTransform(HumanBodyBones.Head);
 			}
 
@@ -31,17 +35,17 @@ namespace Nox.CCK.Avatars.Camera {
 			if (!headTransform) {
 				var anchor = descriptor.GetAnchor();
 				headTransform = anchor.Find("Head")?.transform;
-				if (headTransform) 
+				if (headTransform)
 					Logger.LogWarning("Head bone not found in animator, using transform named 'Head' as fallback.", this);
 			}
 
 			// Last resort: use the avatar root transform
-			if (!headTransform) 
+			if (!headTransform)
 				headTransform = descriptor.GetAnchor().transform;
 
-			if (cameraOffset != Vector3.zero) 
+			if (cameraOffset != Vector3.zero)
 				return true;
-			
+
 			Logger.LogWarning("CameraOffset is not set, defaulting to head position.", this);
 			var leftEye = descriptor
 				.GetAnimator()
@@ -55,7 +59,7 @@ namespace Nox.CCK.Avatars.Camera {
 				cameraOffset = (leftEye.position + rightEye.position) / 2 - headTransform.position;
 			} else if (leftEye) {
 				cameraOffset = leftEye.position - headTransform.position;
-			} else if (rightEye) 
+			} else if (rightEye)
 				cameraOffset = rightEye.position - headTransform.position;
 
 			cameraOffset.x = 0f;
@@ -73,16 +77,15 @@ namespace Nox.CCK.Avatars.Camera {
 				_ => null
 			};
 
-			if (module) 
+			if (module)
 				return true;
-			
+
 			Logger.LogError("Verify that the Avatar prefab has a valid CameraAvatarModule component.", descriptor.GetAnchor());
 			return false;
-
 		}
 
 		public Vector3 GetOffset()
-			=> cameraOffset;
+			=> cameraOffset * headTransform.lossyScale.y;
 
 		public Transform GetAnchor()
 			=> headTransform;

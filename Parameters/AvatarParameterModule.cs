@@ -98,8 +98,8 @@ namespace Nox.CCK.Avatars.Parameters {
 			return parametersList.ToArray();
 		}
 
-		public IParameter GetParameter(string key)
-			=> GetParameters().FirstOrDefault(p => p.GetName() == key);
+		public IParameter GetParameter(string n)
+			=> GetParameters().FirstOrDefault(p => p.GetName() == n);
 
 		public IParameter GetParameter(int hash)
 			=> GetParameters().FirstOrDefault(p => p.GetKey() == hash);

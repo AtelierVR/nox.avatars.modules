@@ -9,6 +9,7 @@
     "Nox.CCK.Avatars.Playable",
     "Nox.CCK.Avatars.Proxies",
     "Nox.CCK.Avatars.Rigging",
+    "Nox.CCK.Avatars.Scale",
     "Nox.CCK.Avatars.StateMachines",
     "Nox.CCK.Avatars.Voice",
     "Nox.Avatars.Camera",

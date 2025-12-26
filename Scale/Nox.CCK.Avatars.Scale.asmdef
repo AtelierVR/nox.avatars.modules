@@ -1,20 +1,12 @@
 {
-  "name": "Nox.Avatars.Modules.Runtime",
+  "name": "Nox.CCK.Avatars.Scale",
   "rootNamespace": "",
   "references": [
     "Nox.Avatars",
-    "Nox.CCK",
-    "Nox.CCK.Avatars.EyeLooks",
-    "Nox.CCK.Avatars.Parameters",
-    "Nox.CCK.Avatars.Rigging",
-    "Nox.CCK.Avatars.Camera",
     "Nox.Avatars.Parameters",
-    "Nox.CCK.Avatars.Playable",
-    "Nox.CCK.Avatars.StateMachines",
-    "Nox.Avatars.StateMachines",
-    "Nox.CCK.Avatars.Voice",
+    "Nox.CCK",
     "UniTask",
-    "Nox.CCK.Avatars.Scale"
+    "Nox.Avatars.Camera"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

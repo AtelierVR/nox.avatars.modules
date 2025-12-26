@@ -5,6 +5,7 @@ using Nox.CCK.Avatars.EyeLooks;
 using Nox.CCK.Avatars.Parameters;
 using Nox.CCK.Avatars.Playable;
 using Nox.CCK.Avatars.Rigging;
+using Nox.CCK.Avatars.Scale;
 using Nox.CCK.Avatars.Voice;
 using Nox.CCK.Mods.Cores;
 using Nox.CCK.Mods.Events;
@@ -13,16 +14,16 @@ using UnityEngine;
 
 namespace Nox.Avatars.Modules.Runtime {
 	public class Main : IMainModInitializer {
-		internal static MainModCoreAPI      CoreAPI;
+		internal static IMainModCoreAPI     CoreAPI;
 		private         EventSubscription[] _events;
 
-		public void OnInitializeMain(MainModCoreAPI api) {
+		public void OnInitializeMain(IMainModCoreAPI api) {
 			CoreAPI = api;
 			_events = new[] {
 				api.EventAPI.Subscribe("avatar_check_request", OnCheckRequest),
 			};
 			PlayableAvatarModule.GetAssetController =
-				() => CoreAPI.AssetAPI.GetAsset<RuntimeAnimatorController>("avatar", "animations/Default.controller");
+				() => CoreAPI.AssetAPI.GetAsset<RuntimeAnimatorController>("avatar:animations/Default.controller");
 			CoreAPI.LoggerAPI.LogDebug("Avatar modules initialized.");
 		}
 
@@ -36,15 +37,16 @@ namespace Nox.Avatars.Modules.Runtime {
 			valid &= BaseRiggingModule.Check(descriptor);
 			valid &= EyeLookAvatarModule.Check(descriptor);
 			valid &= VoiceAvatarModule.Check(descriptor);
+			valid &= ScaleAvatarModule.Check(descriptor);
 			context.Callback(valid);
 		}
 
 		public void OnDisposeMain() {
 			foreach (var e in _events)
 				CoreAPI.EventAPI.Unsubscribe(e);
-			_events = Array.Empty<EventSubscription>();
+			_events                                 = Array.Empty<EventSubscription>();
 			PlayableAvatarModule.GetAssetController = null;
-			CoreAPI = null;
+			CoreAPI                                 = null;
 		}
 	}
 }

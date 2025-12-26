@@ -118,8 +118,8 @@ namespace Nox.CCK.Avatars.Rigging {
 		public IParameter[] GetParameters()
 			=> Parameters.Cast<IParameter>().ToArray();
 
-		public IParameter GetParameter(string key)
-			=> Parameters.FirstOrDefault(p => p.GetName() == key);
+		public IParameter GetParameter(string n)
+			=> Parameters.FirstOrDefault(p => p.GetName() == n);
 
 		public IParameter GetParameter(int hash)
 			=> Parameters.FirstOrDefault(p => p.GetKey() == hash);
