@@ -1,13 +1,11 @@
 {
-  "name": "Nox.CCK.Avatars.Scale",
+  "name": "Nox.Avatars.Scale",
   "rootNamespace": "",
   "references": [
-    "Nox.Avatars",
-    "Nox.Avatars.Parameters",
     "Nox.CCK",
     "UniTask",
-    "Nox.Avatars.Camera",
-    "Nox.Avatars.Scale"
+    "Nox.Avatars",
+    "Nox.Avatars.Parameters"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

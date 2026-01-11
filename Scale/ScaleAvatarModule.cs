@@ -5,11 +5,12 @@ using Cysharp.Threading.Tasks;
 using Nox.Avatars;
 using Nox.Avatars.Camera;
 using Nox.Avatars.Parameters;
+using Nox.Avatars.Scale;
 using UnityEngine;
 using Logger = Nox.CCK.Utils.Logger;
 
 namespace Nox.CCK.Avatars.Scale {
-	public class ScaleAvatarModule : MonoBehaviour, IAvatarModule, IParameterGroup {
+	public class ScaleAvatarModule : MonoBehaviour, IScaleAvatarModule {
 		[NonSerialized]
 		public float InitialHeight = 1.7f;
 
@@ -18,7 +19,7 @@ namespace Nox.CCK.Avatars.Scale {
 
 
 		private readonly List<IParameter> _parameters = new();
-		private          IRuntimeAvatar   _runtimeAvatar;
+		private IRuntimeAvatar _runtimeAvatar;
 
 		public int GetPriority()
 			=> 1;
@@ -29,19 +30,44 @@ namespace Nox.CCK.Avatars.Scale {
 		}
 
 		private float RuntimeHeight() {
-			var cameraModule = _runtimeAvatar.GetDescriptor()
+			var anchor = _runtimeAvatar.GetDescriptor().GetAnchor().transform;
+			var module = _runtimeAvatar.GetDescriptor()
 				.GetModules<ICameraModule>()
 				.FirstOrDefault();
-			var head = cameraModule != null
-				? cameraModule.GetAnchor().position + cameraModule.GetOffset()
-				: _runtimeAvatar.GetDescriptor().GetAnimator().GetBoneTransform(HumanBodyBones.Head).position;
-			var anchor = _runtimeAvatar.GetDescriptor().GetAnchor().transform;
-			return anchor.InverseTransformPoint(head).y;
+
+			Vector3 headWorldPos;
+			if (module != null) {
+				// Get the head anchor position
+				var headAnchor = module.GetAnchor();
+				headWorldPos = headAnchor.position;
+
+				// GetOffset() returns cameraOffset * lossyScale.y (as per CameraAvatarModule logic)
+				// To get the unscaled offset, we need to divide by lossyScale.y
+				var scaledOffset = module.GetOffset();
+				var lossyScale = headAnchor.lossyScale.y;
+
+				if (lossyScale > 0.001f) {
+					// cameraOffset is calculated in world space (already scaled), then GetOffset() multiplies by lossyScale again
+					// So we need to divide by lossyScale² to get the truly unscaled offset
+					var unscaledOffset = scaledOffset / (lossyScale * lossyScale);
+					// Transform back to world space with current scale
+					unscaledOffset *= lossyScale;
+					headWorldPos += unscaledOffset;
+				}
+			}
+			else {
+				headWorldPos = _runtimeAvatar.GetDescriptor().GetAnimator()
+					.GetBoneTransform(HumanBodyBones.Head).position;
+			}
+
+			// Calculate height in world space, then divide by current scale to get the base height
+			var worldHeight = headWorldPos.y - anchor.position.y;
+			return worldHeight / anchor.lossyScale.y;
 		}
 
 		public float Height {
-			get => InitialHeight                 * Scale / InitialScale;
-			set => Scale = value / InitialHeight * InitialScale;
+			get => InitialHeight * Scale;
+			set => Scale = value / InitialHeight;
 		}
 
 		public bool ScaleModified {
@@ -51,8 +77,8 @@ namespace Nox.CCK.Avatars.Scale {
 
 		public UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar) {
 			_runtimeAvatar = runtimeAvatar;
-			InitialHeight  = RuntimeHeight();
-			InitialScale   = Scale;
+			InitialHeight = RuntimeHeight();
+			InitialScale = Scale;
 
 			// Add parameters
 			_parameters.Clear();
