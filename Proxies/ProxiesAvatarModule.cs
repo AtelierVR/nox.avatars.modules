@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Animations;
 using UnityEngine.Playables;
 using Logger = Nox.CCK.Utils.Logger;
+using Report = Nox.CCK.Utils.Report;
 
 namespace Nox.CCK.Avatars.Proxies {
 	public class ProxiesAvatarModule : MonoBehaviour, IAvatarModule {
@@ -16,28 +17,41 @@ namespace Nox.CCK.Avatars.Proxies {
 			=> 0;
 		
 		public async UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar) {
+			
+			
+			
 			if (clips == null || clips.Length == 0) {
 				Logger.LogWarning("Aucun clip de remplacement spécifié");
+				
 				return true;
 			}
 
+			
 			var animator      = runtimeAvatar.GetDescriptor().GetAnimator();
 			var playableGraph = animator.playableGraph;
 
 			try {
 				// Créer un dictionnaire pour un accès rapide aux remplacements
+				
 				var replacementDict = clips
 					.ToDictionary(clip => clip.original, clip => clip.replacement);
+				
 
-				await UniTask.Yield();
+				// Optimisation: Supprimer le yield inutile pour réduire la latence
+				// await UniTask.Yield(); // Supprimé - pas nécessaire ici
 
 				// Remplacer les clips dans le PlayableGraph
+				
 				ReplaceClipsInPlayableGraph(playableGraph, replacementDict);
+				
 
 				Logger.Log($"Remplacement de {clips.Length} clips d'animation effectué avec succès");
+				
+				
 				return true;
 			} catch (Exception ex) {
 				Logger.LogError($"Erreur lors du remplacement des clips: {ex.Message}");
+				
 				return false;
 			}
 		}

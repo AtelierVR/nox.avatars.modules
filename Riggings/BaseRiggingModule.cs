@@ -28,17 +28,23 @@ namespace Nox.CCK.Avatars.Rigging {
 			=> 0;
 		
 		public async UniTask<bool> Setup(IRuntimeAvatar runtime) {
+			
+			
+			
 			// Vérification de sécurité pour éviter les NullReferenceException
 			if (runtime == null) {
 				Logger.LogError("RuntimeAvatar is null, cannot setup rigging.");
+				
 				return false;
 			}
 
 			// Supprimer le composant après l'initialisation
+			
 			var anchor = runtime.GetDescriptor().GetAnchor();
 
 			#if HAS_FINALIK
 			// Utilise FinalIK VR (préféré)
+			
 			var arguments = runtime.GetArguments();
 			var ufik = arguments != null
 				&& arguments.TryGetValue("local", out var isLocalObj)
@@ -47,24 +53,35 @@ namespace Nox.CCK.Avatars.Rigging {
 				&& allowXRObj is true;
 
 			if (ufik) {
+				
 				var fik = anchor.GetOrAddComponent<FinalIKAvatarModule>();
 				fik.Descriptor = runtime.GetDescriptor();
+				
 				FinalIKRigGenerator.Create(fik);
+				
 			} else {
+				
 				var rik = anchor.GetOrAddComponent<RigBuilderAvatarModule>();
 				rik.Descriptor = runtime.GetDescriptor();
+				
 				RigBuilderRigGenerator.Create(rik);
+				
 			}
 			#else
 			// Utilise RigBuilder (legacy)
+			
 			var rik = anchor.GetOrAddComponent<RigBuilderAvatarModule>();
 			rik.Descriptor = runtime.GetDescriptor();
+			
 			RigBuilderRigGenerator.Create(rik);
+			
 			#endif
 
+			
 			var module = anchor.GetComponent<BaseRiggingModule>();
 			if (!module) {
 				Logger.LogError("BaseRiggingModule component is missing on avatar anchor.");
+				
 				return false;
 			}
 
@@ -73,15 +90,24 @@ namespace Nox.CCK.Avatars.Rigging {
 			// Vérification de sécurité pour éviter les NullReferenceException
 			if (module.Descriptor == null) {
 				Logger.LogError("Avatar descriptor is null, cannot setup rigging.");
+				
 				return false;
 			}
 
+			
 			if (!IKRigParameters.SetupParameters(module)) {
 				Logger.LogError("Failed to setup rigging parameters.");
+				
 				return false;
 			}
+			
 
-			await UniTask.Yield();
+			
+			await UniTask.NextFrame(); // Utiliser NextFrame pour une meilleure distribution de charge
+			
+			
+			
+			
 			return true;
 		}
 
@@ -98,7 +124,6 @@ namespace Nox.CCK.Avatars.Rigging {
 
 		public IRigPart[] GetParts()
 			=> Parts.Cast<IRigPart>().ToArray();
-
 
 		public void SetPart(HumanBodyBones bone, Transform part) {
 			var index        = bone.ToIndex();
