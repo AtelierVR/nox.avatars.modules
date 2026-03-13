@@ -31,8 +31,8 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 			=> ParameterType.Float;
 
 		public ParameterFlags GetFlags()
-			=> ParameterFlags.LocalEditable
-				| ParameterFlags.RemoteEditableByLocal;
+			=> ParameterFlags.OwnerEditable
+				| ParameterFlags.OwnerSyncsToViewers;
 		
 		// ReSharper disable Unity.PerformanceAnalysis
 		public object Get() {

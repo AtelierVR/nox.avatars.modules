@@ -7,11 +7,12 @@ using UnityEngine;
 namespace Nox.CCK.Avatars.Parameters {
 	[Serializable]
 	public class ParameterEntry {
-		public string        name;
-		public ParameterType type;
-		public byte[]        defaultValue;
-		public bool          synced;
-		public bool          savable;
+		public string         name;
+		public ParameterType  type;
+		public byte[]         defaultValue;
+		public bool           synced;
+		public bool           savable;
+		public ParameterFlags flags;
 
 		public int GetNameHash()
 			=> Animator.StringToHash(name);

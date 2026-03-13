@@ -124,7 +124,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			var container = new VisualElement();
 			container.AddToClassList("parameter-field");
 
-			var editable = param.GetFlags().HasFlag(isLocal ? ParameterFlags.LocalEditable : ParameterFlags.RemoteEditable);
+			var editable = param.GetFlags().HasFlag(isLocal ? ParameterFlags.OwnerEditable : ParameterFlags.ViewerEditable);
 			var field    = CreateFieldForParameter(param, editable);
 
 			if (field != null) {

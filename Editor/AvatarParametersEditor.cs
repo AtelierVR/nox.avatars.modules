@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,11 +35,12 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 		private void CreateMultiColumnListView() {
 			// Create columns collection
 			var columns = new Columns {
-				// Name column
+				// Name column — largest, stretches to fill remaining space
 				new Column {
 					name        = "name",
 					title       = "Name",
 					stretchable = true,
+					minWidth    = 160,
 					sortable    = true,
 					makeCell    = () => MakeContainer(new TextField()),
 					bindCell = (element, index) => {
@@ -54,6 +56,8 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 				new Column {
 					name     = "type",
 					title    = "Type",
+					width    = 100,
+					minWidth = 80,
 					sortable = true,
 					makeCell = () => MakeContainer(new EnumField()),
 					bindCell = (element, index) => {
@@ -68,42 +72,32 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 				},
 				// Default Value column
 				new Column {
-					name     = "defaultValue",
-					title    = "Default Value",
+					name        = "defaultValue",
+					title       = "Default",
+					width       = 110,
+					minWidth    = 80,
+					stretchable = true,
 					makeCell = () => MakeContainer(CreateDefaultValueControl()),
 					bindCell = (element, index) => {
 						if (index < 0 || index >= _parametersList.Count || _parametersList[index] == null) return;
 						BindDefaultValueControl(element, index);
 					}
 				},
-				// Synced column
+				// Flags column — replaces the simple Synced bool with full ParameterFlags
 				new Column {
-					name     = "synced",
-					title    = "Synced",
+					name     = "flags",
+					title    = "Flags",
+					width    = 170,
+					minWidth = 130,
 					sortable = true,
-					makeCell = () => MakeContainer(new Toggle()),
+					makeCell = () => MakeContainer(new EnumFlagsField(ParameterFlags.None)),
 					bindCell = (element, index) => {
-						var toggle = element.Q<Toggle>();
-						if (toggle == null || index < 0 || index >= _parametersList.Count || _parametersList[index] == null) return;
-						toggle.value = _parametersList[index].synced;
-						toggle.UnregisterValueChangedCallback(OnSyncedChanged);
-						toggle.userData = index;
-						toggle.RegisterValueChangedCallback(OnSyncedChanged);
-					}
-				},
-				// Savable column
-				new Column {
-					name     = "savable",
-					title    = "Savable",
-					sortable = true,
-					makeCell = () => MakeContainer(new Toggle()),
-					bindCell = (element, index) => {
-						var toggle = element.Q<Toggle>();
-						if (toggle == null || index < 0 || index >= _parametersList.Count || _parametersList[index] == null) return;
-						toggle.value = _parametersList[index].savable;
-						toggle.UnregisterValueChangedCallback(OnSavableChanged);
-						toggle.userData = index;
-						toggle.RegisterValueChangedCallback(OnSavableChanged);
+						var enumFlags = element.Q<EnumFlagsField>();
+						if (enumFlags == null || index < 0 || index >= _parametersList.Count || _parametersList[index] == null) return;
+						enumFlags.value = _parametersList[index].flags;
+						enumFlags.UnregisterValueChangedCallback(OnFlagsChanged);
+						enumFlags.userData = index;
+						enumFlags.RegisterValueChangedCallback(OnFlagsChanged);
 					}
 				}
 			};
@@ -167,15 +161,11 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			SaveChangesInternal();
 		}
 
-		private void OnSyncedChanged(ChangeEvent<bool> evt) {
-			if (evt.target is not Toggle { userData: int index } || index >= _parametersList.Count) return;
-			_parametersList[index].synced = evt.newValue;
-			SaveChangesInternal();
-		}
-
-		private void OnSavableChanged(ChangeEvent<bool> evt) {
-			if (evt.target is not Toggle { userData: int index } || index >= _parametersList.Count) return;
-			_parametersList[index].savable = evt.newValue;
+		private void OnFlagsChanged(ChangeEvent<Enum> evt) {
+			if (evt.target is not EnumFlagsField { userData: int index } || index >= _parametersList.Count) return;
+			var flags = (ParameterFlags)evt.newValue;
+			_parametersList[index].flags  = flags;
+			_parametersList[index].synced = (flags & ParameterFlags.OwnerSyncsToViewers) != 0;
 			SaveChangesInternal();
 		}
 
@@ -277,11 +267,11 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 		// Callbacks pour ajouter et supprimer des paramètres
 		private void OnAddParameter() {
 			var newParameter = new ParameterEntry {
-				name = "New Parameter",
-				type = ParameterType.Bool,
+				name         = "New Parameter",
+				type         = ParameterType.Bool,
 				defaultValue = Array.Empty<byte>(),
-				synced = true,
-				savable = false
+				synced       = true,
+				flags        = ParameterFlags.OwnerBroadcast
 			};
 
 			_parametersList.Add(newParameter);

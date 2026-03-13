@@ -29,8 +29,8 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 			=> ParameterType.Float;
 
 		public ParameterFlags GetFlags()
-			=> ParameterFlags.LocalEditable
-				| ParameterFlags.RemoteEditableByLocal;
+			=> ParameterFlags.OwnerEditable
+				| ParameterFlags.OwnerSyncsToViewers;
 
 		public object Get() {
 			if (!_rigBuilder) return 0f;

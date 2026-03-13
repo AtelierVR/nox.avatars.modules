@@ -18,8 +18,8 @@ namespace Nox.CCK.Avatars.Scale {
 			=> ParameterType.Float;
 
 		public ParameterFlags GetFlags()
-			=> ParameterFlags.LocalEditable
-				| ParameterFlags.RemoteEditableByLocal;
+			=> ParameterFlags.OwnerEditable
+				| ParameterFlags.OwnerSyncsToViewers;
 
 		public object Get()
 			=> _module.Height;
