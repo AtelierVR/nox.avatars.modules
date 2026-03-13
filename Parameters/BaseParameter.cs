@@ -15,9 +15,7 @@ namespace Nox.CCK.Avatars.Parameters {
 			=> Parameter.nameHash;
 
 		public ParameterFlags GetFlags()
-			=> ParameterFlags.AllEditable
-				| (Entry?.synced == true ? ParameterFlags.BidirectionalSync : ParameterFlags.None)
-				| (Entry?.flags.HasFlag(ParameterFlags.Persistent) == true ? ParameterFlags.Persistent : ParameterFlags.None);
+			=> Entry?.flags ?? ParameterFlags.AllEditable;
 
 		public ParameterType GetValueType()
 			=> Parameter.type switch {
