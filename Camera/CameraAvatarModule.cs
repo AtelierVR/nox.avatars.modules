@@ -22,7 +22,7 @@ namespace Nox.CCK.Avatars.Camera {
 			_runtimeAvatar = runtimeAvatar;
 
 			await UniTask.Yield();
-			var descriptor = _runtimeAvatar.GetDescriptor();
+			var descriptor = _runtimeAvatar.Descriptor;
 
 			// Try to get head transform from animator bones
 			if (!headTransform) {

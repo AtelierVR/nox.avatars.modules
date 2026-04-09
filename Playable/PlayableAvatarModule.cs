@@ -49,7 +49,7 @@ namespace Nox.CCK.Avatars.Playable {
 			
 			float startTime = 0f;
 			
-			Descriptor = runtimeAvatar.GetDescriptor();
+			Descriptor = runtimeAvatar.Descriptor;
 			var  anchor = Descriptor.GetAnchor();
 			bool isHide;
 

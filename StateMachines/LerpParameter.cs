@@ -19,7 +19,7 @@ namespace Nox.CCK.Avatars.StateMachines {
 
 		public override bool Setup(IRuntimeAvatar runtime) {
 			_module = runtime
-				.GetDescriptor()
+				.Descriptor
 				.GetModules<IParameterModule>()
 				.FirstOrDefault();
 			return base.Setup(runtime);

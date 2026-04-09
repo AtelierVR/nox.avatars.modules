@@ -163,7 +163,7 @@ namespace Nox.CCK.Avatars.StateMachines {
 		public override void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
 			base.OnStateEnter(animator, stateInfo, layerIndex);
 
-			var module = RuntimeAvatar?.GetDescriptor()
+			var module = RuntimeAvatar?.Descriptor
 				.GetModules<IParameterModule>()
 				.FirstOrDefault();
 

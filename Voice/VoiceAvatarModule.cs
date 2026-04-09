@@ -20,7 +20,7 @@ namespace Nox.CCK.Avatars.Voice {
 
 		public async UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar) {
 			await UniTask.Yield();
-			var descriptor = runtimeAvatar.GetDescriptor();
+			var descriptor = runtimeAvatar.Descriptor;
 
 			// Try to get head transform from animator bones
 			if (!headTransform) {

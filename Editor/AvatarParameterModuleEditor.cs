@@ -95,7 +95,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 				return;
 			}
 
-			var animator = _target.Runtime.GetDescriptor()?.GetAnimator();
+			var animator = _target.Runtime.Descriptor?.GetAnimator();
 			if (!animator) {
 				_infoLabel.text  = "Aucun animateur trouvé sur l'avatar.";
 				_infoLabel.style.display = DisplayStyle.Flex;

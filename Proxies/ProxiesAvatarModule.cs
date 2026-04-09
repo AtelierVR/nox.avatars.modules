@@ -27,7 +27,7 @@ namespace Nox.CCK.Avatars.Proxies {
 			}
 
 			
-			var animator      = runtimeAvatar.GetDescriptor().GetAnimator();
+			var animator      = runtimeAvatar.Descriptor.GetAnimator();
 			var playableGraph = animator.playableGraph;
 
 			try {

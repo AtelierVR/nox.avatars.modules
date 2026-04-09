@@ -44,7 +44,7 @@ namespace Nox.CCK.Avatars.Parameters {
 		}
 
 		public IParameter[] GetParameters() {
-			var animator = Runtime?.GetDescriptor()?.GetAnimator();
+			var animator = Runtime?.Descriptor?.GetAnimator();
 			if (!animator)
 				return Array.Empty<IParameter>();
 
@@ -64,7 +64,7 @@ namespace Nox.CCK.Avatars.Parameters {
 
 			// Ajout des paramètres des contrôleurs d'animation
 			var controllers = Runtime
-					?.GetDescriptor()
+					?.Descriptor
 					?.GetAnimator()
 					.GetControllers()
 				?? Array.Empty<AnimatorControllerPlayable>();
@@ -81,7 +81,7 @@ namespace Nox.CCK.Avatars.Parameters {
 			}
 
 			// Ajout des paramètres des modules
-			var modules = Runtime?.GetDescriptor()
+			var modules = Runtime?.Descriptor
 					?.GetModules()
 					.OfType<IParameterGroup>()
 					.Where(m => !ReferenceEquals(m, this))
@@ -113,7 +113,7 @@ namespace Nox.CCK.Avatars.Parameters {
 			};
 
 		public void Update() {
-			var animator = Runtime?.GetDescriptor()?.GetAnimator();
+			var animator = Runtime?.Descriptor?.GetAnimator();
 			if (!animator || !animator.runtimeAnimatorController) return;
 
 			// Récupération des paramètres de l'Animator

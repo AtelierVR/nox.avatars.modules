@@ -9,7 +9,7 @@ namespace Nox.CCK.Avatars.StateMachines {
 
 		public virtual bool Setup(IRuntimeAvatar runtime) {
 			RuntimeAvatar = runtime;
-			Logger.LogDebug($"Setting up state machine {GetType().Name} in {runtime.GetDescriptor()}", this);
+			Logger.LogDebug($"Setting up state machine {GetType().Name} in {runtime.Descriptor}", this);
 			return true;
 		}
 	}

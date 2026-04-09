@@ -40,12 +40,12 @@ namespace Nox.CCK.Avatars.Rigging {
 
 			// Supprimer le composant après l'initialisation
 			
-			var anchor = runtime.GetDescriptor().GetAnchor();
+			var anchor = runtime.Descriptor.GetAnchor();
 
 			#if HAS_FINALIK
 			// Utilise FinalIK VR (préféré)
 			
-			var arguments = runtime.GetArguments();
+			var arguments = runtime.Arguments;
 			var ufik = arguments != null
 				&& arguments.TryGetValue("local", out var isLocalObj)
 				&& isLocalObj is true
@@ -55,14 +55,14 @@ namespace Nox.CCK.Avatars.Rigging {
 			if (ufik) {
 				
 				var fik = anchor.GetOrAddComponent<FinalIKAvatarModule>();
-				fik.Descriptor = runtime.GetDescriptor();
+				fik.Descriptor = runtime.Descriptor;
 				
 				FinalIKRigGenerator.Create(fik);
 				
 			} else {
 				
 				var rik = anchor.GetOrAddComponent<RigBuilderAvatarModule>();
-				rik.Descriptor = runtime.GetDescriptor();
+				rik.Descriptor = runtime.Descriptor;
 				
 				RigBuilderRigGenerator.Create(rik);
 				
@@ -85,7 +85,7 @@ namespace Nox.CCK.Avatars.Rigging {
 				return false;
 			}
 
-			module.Descriptor = runtime.GetDescriptor();
+			module.Descriptor = runtime.Descriptor;
 
 			// Vérification de sécurité pour éviter les NullReferenceException
 			if (module.Descriptor == null) {

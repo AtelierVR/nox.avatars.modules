@@ -25,13 +25,13 @@ namespace Nox.CCK.Avatars.Scale {
 			=> 1;
 
 		public float Scale {
-			get => _runtimeAvatar.GetDescriptor().GetAnchor().transform.localScale.y;
-			set => _runtimeAvatar.GetDescriptor().GetAnchor().transform.localScale = new Vector3(value, value, value);
+			get => _runtimeAvatar.Descriptor.GetAnchor().transform.localScale.y;
+			set => _runtimeAvatar.Descriptor.GetAnchor().transform.localScale = new Vector3(value, value, value);
 		}
 
 		private float RuntimeHeight() {
-			var anchor = _runtimeAvatar.GetDescriptor().GetAnchor().transform;
-			var module = _runtimeAvatar.GetDescriptor()
+			var anchor = _runtimeAvatar.Descriptor.GetAnchor().transform;
+			var module = _runtimeAvatar.Descriptor
 				.GetModules<ICameraModule>()
 				.FirstOrDefault();
 
@@ -56,7 +56,7 @@ namespace Nox.CCK.Avatars.Scale {
 				}
 			}
 			else {
-				headWorldPos = _runtimeAvatar.GetDescriptor().GetAnimator()
+				headWorldPos = _runtimeAvatar.Descriptor.GetAnimator()
 					.GetBoneTransform(HumanBodyBones.Head).position;
 			}
 

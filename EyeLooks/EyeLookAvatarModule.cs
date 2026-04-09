@@ -24,7 +24,7 @@ namespace Nox.CCK.Avatars.EyeLooks {
 
 		public async UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar) {
 			await UniTask.Yield();
-			_descriptor = runtimeAvatar.GetDescriptor();
+			_descriptor = runtimeAvatar.Descriptor;
 			return true;
 		}
 
