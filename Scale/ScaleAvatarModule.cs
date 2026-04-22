@@ -18,8 +18,9 @@ namespace Nox.CCK.Avatars.Scale {
 		public float InitialScale = 1f;
 
 
-		private readonly List<IParameter> _parameters = new();
-		private IRuntimeAvatar _runtimeAvatar;
+		private readonly List<IParameter> _parameters    = new();
+		private          IRuntimeAvatar   _runtimeAvatar;
+		private          IParameterModule _parameterModule;
 
 		public int GetPriority()
 			=> 1;
@@ -86,7 +87,16 @@ namespace Nox.CCK.Avatars.Scale {
 			_parameters.Add(new ScaleParameter(this));
 			_parameters.Add(new EyeHeightParameter(this));
 
+			_parameterModule = runtimeAvatar.Descriptor.GetModules<IParameterModule>().FirstOrDefault();
+			foreach (var p in _parameters)
+				_parameterModule?.RegisterParameter(p);
+
 			return UniTask.FromResult(true);
+		}
+
+		private void OnDestroy() {
+			foreach (var p in _parameters)
+				_parameterModule?.UnregisterParameter(p);
 		}
 
 		public IParameter[] GetParameters()

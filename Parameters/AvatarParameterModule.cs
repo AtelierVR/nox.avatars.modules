@@ -32,116 +32,118 @@ namespace Nox.CCK.Avatars.Parameters {
 		public AvatarParameters parameters;
 		public IRuntimeAvatar   Runtime;
 
-		private readonly Dictionary<int, object> _history = new();
+		private readonly Dictionary<int, object>       _history   = new();
+		private readonly List<IParameter>              _paramList = new();
+		private readonly Dictionary<string, IParameter> _byName   = new();
+		private readonly Dictionary<int,    IParameter> _byHash   = new();
+		private          RuntimeAnimatorController     _lastController;
+		private          bool                          _populated;
+
+		public IParameter[] Parameters { get; private set; } = Array.Empty<IParameter>();
 
 		public int GetPriority()
 			=> 100;
 
 		public async UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar) {
 			await UniTask.Yield();
-			Runtime = runtimeAvatar;
+			Runtime    = runtimeAvatar;
+			_populated = false;
 			return true;
 		}
 
-		public IParameter[] GetParameters() {
-			var animator = Runtime?.Descriptor?.GetAnimator();
-			if (!animator)
-				return Array.Empty<IParameter>();
+		public void RegisterParameter(IParameter parameter) {
+			var key = parameter.GetKey();
+			if (_byHash.ContainsKey(key)) return;
+			_paramList.Add(parameter);
+			_byName.TryAdd(parameter.GetName(), parameter);
+			_byHash[key] = parameter;
+			Parameters   = _paramList.ToArray();
+		}
 
+		public void UnregisterParameter(IParameter parameter) {
+			_paramList.Remove(parameter);
+			_byName.Remove(parameter.GetName());
+			_byHash.Remove(parameter.GetKey());
+			Parameters = _paramList.ToArray();
+		}
+
+		private void PopulateParameters() {
+			var animator = Runtime?.Descriptor?.GetAnimator();
+			if (!animator || !animator.runtimeAnimatorController || !animator.playableGraph.IsValid()) return;
+
+			_lastController = animator.runtimeAnimatorController;
 			var entries = parameters?.parameters ?? Array.Empty<ParameterEntry>();
 
-			var parametersList = new List<IParameter>();
-			var hashSet        = new HashSet<int>();
-
-			// Ajout des paramètres de l'Animator
+			// Paramètres de l'Animator
 			foreach (var parameter in animator.parameters) {
-				var hash = parameter.nameHash;
-				if (hashSet.Contains(hash)) continue;
-				var entry = entries.FirstOrDefault(e => e.GetNameHash() == hash);
-				parametersList.Add(new AnimatorBaseParameter { Animator = animator, Parameter = parameter, Entry = entry });
-				hashSet.Add(hash);
+				var entry = entries.FirstOrDefault(e => e.GetNameHash() == parameter.nameHash);
+				RegisterParameter(new AnimatorBaseParameter { Animator = animator, Parameter = parameter, Entry = entry });
 			}
 
-			// Ajout des paramètres des contrôleurs d'animation
-			var controllers = Runtime
-					?.Descriptor
-					?.GetAnimator()
-					.GetControllers()
-				?? Array.Empty<AnimatorControllerPlayable>();
-
-			foreach (var controller in controllers) {
+			// Paramètres des contrôleurs du playable graph
+			foreach (var controller in animator.GetControllers()) {
 				for (var i = 0; i < controller.GetParameterCount(); i++) {
-					var controllerParameter = controller.GetParameter(i);
-					var hash                = controllerParameter.nameHash;
-					if (hashSet.Contains(hash)) continue;
-					var entry = entries.FirstOrDefault(e => e.GetNameHash() == hash);
-					parametersList.Add(new PlayableBaseParameter { Animator = animator, Controller = controller, Parameter = controllerParameter, Entry = entry });
-					hashSet.Add(hash);
+					var cp    = controller.GetParameter(i);
+					var entry = entries.FirstOrDefault(e => e.GetNameHash() == cp.nameHash);
+					RegisterParameter(new PlayableBaseParameter { Animator = animator, Controller = controller, Parameter = cp, Entry = entry });
 				}
 			}
 
-			// Ajout des paramètres des modules
-			var modules = Runtime?.Descriptor
-					?.GetModules()
-					.OfType<IParameterGroup>()
-					.Where(m => !ReferenceEquals(m, this))
-				?? Array.Empty<IParameterGroup>(); // Exclure ce module pour éviter la récursion
-
-			foreach (var module in modules)
-			foreach (var moduleParameter in module.GetParameters()) {
-				var hash = moduleParameter.GetKey();
-				if (hashSet.Contains(hash)) continue;
-				parametersList.Add(moduleParameter); // Ajouter directement l'IParameter sans cast
-				hashSet.Add(hash);
-			}
-
-			return parametersList.ToArray();
+			_populated = true;
 		}
 
-		public IParameter GetParameter(string n)
-			=> GetParameters().FirstOrDefault(p => p.GetName() == n);
+		private void RepopulateAnimatorParameters() {
+			var animator = Runtime?.Descriptor?.GetAnimator();
+			if (!animator) return;
 
-		public IParameter GetParameter(int hash)
-			=> GetParameters().FirstOrDefault(p => p.GetKey() == hash);
+			_lastController = animator.runtimeAnimatorController;
+			_history.Clear();
 
-		private static object GetValue(AnimatorControllerParameter parameter)
-			=> parameter.type switch {
-				AnimatorControllerParameterType.Float => parameter.defaultFloat,
-				AnimatorControllerParameterType.Int   => parameter.defaultInt,
-				AnimatorControllerParameterType.Bool  => parameter.defaultBool,
-				_                                     => null
-			};
+			// Retirer les anciens paramètres liés à l'animator/playable
+			foreach (var p in _paramList.OfType<AnimatorBaseParameter>().ToList())
+				UnregisterParameter(p);
+			foreach (var p in _paramList.OfType<PlayableBaseParameter>().ToList())
+				UnregisterParameter(p);
+
+			var entries = parameters?.parameters ?? Array.Empty<ParameterEntry>();
+
+			foreach (var parameter in animator.parameters) {
+				var entry = entries.FirstOrDefault(e => e.GetNameHash() == parameter.nameHash);
+				RegisterParameter(new AnimatorBaseParameter { Animator = animator, Parameter = parameter, Entry = entry });
+			}
+
+			foreach (var controller in animator.GetControllers()) {
+				for (var i = 0; i < controller.GetParameterCount(); i++) {
+					var cp    = controller.GetParameter(i);
+					var entry = entries.FirstOrDefault(e => e.GetNameHash() == cp.nameHash);
+					RegisterParameter(new PlayableBaseParameter { Animator = animator, Controller = controller, Parameter = cp, Entry = entry });
+				}
+			}
+		}
+
+		public IParameter[] GetParameters()
+			=> Parameters;
+
+		public IParameter GetParameter(string n)    
+			=> _byName.GetValueOrDefault(n);
+
+		public IParameter GetParameter(int    hash) 
+			=> _byHash.GetValueOrDefault(hash);
 
 		public void Update() {
 			var animator = Runtime?.Descriptor?.GetAnimator();
 			if (!animator || !animator.runtimeAnimatorController) return;
 
-			// Récupération des paramètres de l'Animator
-			foreach (var parameter in animator.parameters) {
-				var value = GetValue(parameter);
-				var hash  = parameter.nameHash;
-				if (_history.TryGetValue(hash, out var entry)) {
-					if (!Equals(entry, value)) OnParameterChanged(hash, value);
-				} else OnParameterAdded(hash, value);
+			// Populate dès que le PlayableGraph est prêt
+			if (!_populated) {
+				if (animator.playableGraph.IsValid())
+					PopulateParameters();
+				return;
 			}
 
-			foreach (var entry in _history)
-				if (animator.parameters.All(p => p.nameHash != entry.Key))
-					OnParameterRemoved(entry.Key);
-		}
-
-		private void OnParameterAdded(int hash, object value) {
-			Logger.LogDebug($"Parameter added: {hash} = {value}");
-			_history.Add(hash, value);
-		}
-
-		private void OnParameterChanged(int hash, object value) {
-			_history[hash] = value;
-		}
-
-		private void OnParameterRemoved(int hash) {
-			Logger.LogDebug($"Parameter removed: {hash}");
-			_history.Remove(hash);
+			// Si le controller a changé, reconstruire les paramètres animator/playable
+			if (_lastController != animator.runtimeAnimatorController)
+				RepopulateAnimatorParameters();
 		}
 	}
 }

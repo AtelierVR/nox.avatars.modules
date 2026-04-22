@@ -100,6 +100,10 @@ namespace Nox.CCK.Avatars.Rigging {
 				
 				return false;
 			}
+
+			var paramModule = runtime.Descriptor.GetModules<IParameterModule>().FirstOrDefault();
+			foreach (var p in module.Parameters)
+				paramModule?.RegisterParameter(p);
 			
 
 			
@@ -155,5 +159,12 @@ namespace Nox.CCK.Avatars.Rigging {
 				0 => descriptor.GetAnchor().AddComponent<RigBuilderAvatarModule>(),
 				_ => false
 			};
+
+		private void OnDestroy() {
+			if (Descriptor == null) return;
+			var paramModule = Descriptor.GetModules<IParameterModule>().FirstOrDefault();
+			foreach (var p in Parameters)
+				paramModule?.UnregisterParameter(p);
+		}
 	}
 }
