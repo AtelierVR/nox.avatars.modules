@@ -119,12 +119,8 @@ namespace Nox.CCK.Avatars.Playable {
 				
 				
 				var ctrlPlayable = AnimatorControllerPlayable.Create(_graph, controllers[i]);
-				
-				
 				_graph.Connect(ctrlPlayable, 0, _mixer, i);
 				_mixer.SetInputWeight(i, 1f);
-				
-				
 				ControllerPlayables[i] = ctrlPlayable;
 			}
 			
