@@ -4,6 +4,7 @@
   "references": [
     "Nox.CCK",
     "Nox.Avatars",
+    "Nox.Controllers",
     "Nox.Avatars.Camera",
     "UniTask"
   ],

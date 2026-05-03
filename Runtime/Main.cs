@@ -11,21 +11,27 @@ using Nox.CCK.Avatars.Voice;
 using Nox.CCK.Mods.Cores;
 using Nox.CCK.Mods.Events;
 using Nox.CCK.Mods.Initializers;
+using Nox.Controllers;
 using UnityEngine;
 using Nox.Avatars.Rigging;
 
 namespace Nox.Avatars.Modules.Runtime {
 	public class Main : IMainModInitializer, IRiggingBackendRegistry {
-		internal static IMainModCoreAPI     CoreAPI;
+		internal static IMainModCoreAPI CoreAPI;
 		private         EventSubscription[] _events;
+
+		internal static IControllerAPI ControllerAPI
+			=> CoreAPI?.ModAPI
+				.GetMod("controller")
+				?.GetInstance<IControllerAPI>();
 
 		public void OnInitializeMain(IMainModCoreAPI api) {
 			CoreAPI = api;
 			_events = new[] {
 				api.EventAPI.Subscribe("avatar_check_request", OnCheckRequest),
 			};
-			PlayableAvatarModule.GetAssetController =
-				() => CoreAPI.AssetAPI.GetAsset<RuntimeAnimatorController>("avatar:animations/Default.controller");
+			PlayableAvatarModule.GetAssetController = () => CoreAPI.AssetAPI.GetAsset<RuntimeAnimatorController>("avatar:animations/Default.controller");
+
 			CoreAPI.LoggerAPI.LogDebug("Avatar modules initialized.");
 		}
 
@@ -34,6 +40,7 @@ namespace Nox.Avatars.Modules.Runtime {
 				return;
 			var valid = true;
 			valid &= CameraAvatarModule.Check(descriptor);
+			valid &= CameraChopModule.Check(descriptor);
 			valid &= AvatarParameterModule.Check(descriptor);
 			valid &= PlayableAvatarModule.Check(descriptor);
 			valid &= RiggingSetupModule.Check(descriptor);
