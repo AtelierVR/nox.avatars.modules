@@ -1,10 +1,7 @@
+using Nox.Avatars.Rigging;
 using Nox.CCK.Avatars.Rigging.Parameters;
-using Nox.CCK.Utils;
 using UnityEngine;
 
-#if HAS_FINALIK
-using RootMotion.FinalIK;
-#endif
 
 namespace Nox.CCK.Avatars.Rigging {
 	public static class IKRigParameters {

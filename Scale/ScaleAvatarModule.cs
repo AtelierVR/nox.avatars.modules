@@ -26,12 +26,12 @@ namespace Nox.CCK.Avatars.Scale {
 			=> 1;
 
 		public float Scale {
-			get => _runtimeAvatar.Descriptor.GetAnchor().transform.localScale.y;
-			set => _runtimeAvatar.Descriptor.GetAnchor().transform.localScale = new Vector3(value, value, value);
+			get => _runtimeAvatar.Descriptor.Anchor.transform.localScale.y;
+			set => _runtimeAvatar.Descriptor.Anchor.transform.localScale = new Vector3(value, value, value);
 		}
 
 		private float RuntimeHeight() {
-			var anchor = _runtimeAvatar.Descriptor.GetAnchor().transform;
+			var anchor = _runtimeAvatar.Descriptor.Anchor.transform;
 			var module = _runtimeAvatar.Descriptor
 				.GetModules<ICameraModule>()
 				.FirstOrDefault();
@@ -57,7 +57,7 @@ namespace Nox.CCK.Avatars.Scale {
 				}
 			}
 			else {
-				headWorldPos = _runtimeAvatar.Descriptor.GetAnimator()
+				headWorldPos = _runtimeAvatar.Descriptor.Animator
 					.GetBoneTransform(HumanBodyBones.Head).position;
 			}
 
@@ -113,7 +113,7 @@ namespace Nox.CCK.Avatars.Scale {
 
 			var module = modules.Length switch {
 				1 => modules.FirstOrDefault(),
-				0 => descriptor.GetAnchor().AddComponent<ScaleAvatarModule>(),
+				0 => descriptor.Anchor.AddComponent<ScaleAvatarModule>(),
 				_ => null
 			};
 
@@ -122,11 +122,11 @@ namespace Nox.CCK.Avatars.Scale {
 
 			var cameraModules = descriptor.GetModules<ICameraModule>();
 			if (cameraModules.Length == 0) {
-				Logger.LogError($"{nameof(ScaleAvatarModule)} requires {nameof(ICameraModule)} to be present on the avatar.", descriptor.GetAnchor());
+				Logger.LogError($"{nameof(ScaleAvatarModule)} requires {nameof(ICameraModule)} to be present on the avatar.", descriptor.Anchor);
 				return false;
 			}
 
-			Logger.LogError($"Verify that the Avatar prefab has a valid {nameof(ScaleAvatarModule)} component.", descriptor.GetAnchor());
+			Logger.LogError($"Verify that the Avatar prefab has a valid {nameof(ScaleAvatarModule)} component.", descriptor.Anchor);
 			return false;
 		}
 	}

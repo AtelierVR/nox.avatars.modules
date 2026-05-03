@@ -10,7 +10,7 @@ namespace Nox.CCK.Avatars.EyeLooks {
 	[Serializable, Tooltip("Muscle")]
 	public class EyeLookMuscle : BaseEyeLook {
 		public override void UpdateEye(EyeLookContext context, Vector4 direction) {
-			var animator = context.Descriptor?.GetAnimator();
+			var animator = context.Descriptor?.Animator;
 			if (!animator) return;
 			var lookDirection = new Vector3(
 				direction.w - direction.z, // left/right

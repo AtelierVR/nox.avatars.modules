@@ -156,7 +156,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			}
 
 			var desc     = _module.Descriptor;
-			var animator = desc?.GetAnimator();
+			var animator = desc?.Animator;
 
 			if (!animator) {
 				_infoLabel.text          = "Aucun animateur disponible.";

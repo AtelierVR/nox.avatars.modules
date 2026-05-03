@@ -50,7 +50,7 @@ namespace Nox.CCK.Avatars.Playable {
 			float startTime = 0f;
 			
 			Descriptor = runtimeAvatar.Descriptor;
-			var  anchor = Descriptor.GetAnchor();
+			var  anchor = Descriptor.Anchor;
 			bool isHide;
 
 			if (Descriptor == null) {
@@ -60,7 +60,7 @@ namespace Nox.CCK.Avatars.Playable {
 			}
 
 			
-			var animator = Descriptor.GetAnimator();
+			var animator = Descriptor.Animator;
 
 			if (!animator) {
 				Logger.LogWarning("Animator is not set, PlayableAvatarModule will be disabled for this avatar.");

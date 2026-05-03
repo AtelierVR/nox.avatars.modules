@@ -26,14 +26,14 @@ namespace Nox.CCK.Avatars.Camera {
 
 			// Try to get head transform from animator bones
 			if (!headTransform) {
-				var animator = descriptor.GetAnimator();
+				var animator = descriptor.Animator;
 				if (animator)
 					headTransform = animator.GetBoneTransform(HumanBodyBones.Head);
 			}
 
 			// Fallback: search for a transform named "Head" in the hierarchy
 			if (!headTransform) {
-				var anchor = descriptor.GetAnchor();
+				var anchor = descriptor.Anchor;
 				headTransform = anchor.Find("Head")?.transform;
 				if (headTransform)
 					Logger.LogWarning("Head bone not found in animator, using transform named 'Head' as fallback.", this);
@@ -41,18 +41,18 @@ namespace Nox.CCK.Avatars.Camera {
 
 			// Last resort: use the avatar root transform
 			if (!headTransform)
-				headTransform = descriptor.GetAnchor().transform;
+				headTransform = descriptor.Anchor.transform;
 
 			if (cameraOffset != Vector3.zero)
 				return true;
 
 			Logger.LogWarning("CameraOffset is not set, defaulting to head position.", this);
 			var leftEye = descriptor
-				.GetAnimator()
+				.Animator
 				?.GetBoneTransform(HumanBodyBones.LeftEye);
 
 			var rightEye = descriptor
-				.GetAnimator()
+				.Animator
 				?.GetBoneTransform(HumanBodyBones.RightEye);
 
 			if (leftEye && rightEye) {
@@ -73,14 +73,14 @@ namespace Nox.CCK.Avatars.Camera {
 
 			var module = modules.Length switch {
 				1 => modules.FirstOrDefault(),
-				0 => descriptor.GetAnchor().AddComponent<CameraAvatarModule>(),
+				0 => descriptor.Anchor.AddComponent<CameraAvatarModule>(),
 				_ => null
 			};
 
 			if (module)
 				return true;
 
-			Logger.LogError("Verify that the Avatar prefab has a valid CameraAvatarModule component.", descriptor.GetAnchor());
+			Logger.LogError("Verify that the Avatar prefab has a valid CameraAvatarModule component.", descriptor.Anchor);
 			return false;
 		}
 

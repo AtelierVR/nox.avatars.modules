@@ -2,7 +2,8 @@
   "type": "mod",
   "id": "nox.avatars.modules",
   "provides": [
-    "fr.hactazia.avatars.modules"
+    "fr.hactazia.avatars.modules",
+    "avatars.modules"
   ],
   "name": "Avatar Modules API",
   "version": "1.0.0",

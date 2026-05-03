@@ -17,7 +17,7 @@ namespace Nox.CCK.Avatars.Parameters {
 
 			var module = modules.Length switch {
 				1 => modules.FirstOrDefault(),
-				0 => descriptor.GetAnchor().AddComponent<AvatarParameterModule>(),
+				0 => descriptor.Anchor.AddComponent<AvatarParameterModule>(),
 				_ => null
 			};
 
@@ -68,7 +68,7 @@ namespace Nox.CCK.Avatars.Parameters {
 		}
 
 		private void PopulateParameters() {
-			var animator = Runtime?.Descriptor?.GetAnimator();
+			var animator = Runtime?.Descriptor?.Animator;
 			if (!animator || !animator.runtimeAnimatorController || !animator.playableGraph.IsValid()) return;
 
 			_lastController = animator.runtimeAnimatorController;
@@ -93,7 +93,7 @@ namespace Nox.CCK.Avatars.Parameters {
 		}
 
 		private void RepopulateAnimatorParameters() {
-			var animator = Runtime?.Descriptor?.GetAnimator();
+			var animator = Runtime?.Descriptor?.Animator;
 			if (!animator) return;
 
 			_lastController = animator.runtimeAnimatorController;
@@ -131,7 +131,7 @@ namespace Nox.CCK.Avatars.Parameters {
 			=> _byHash.GetValueOrDefault(hash);
 
 		public void Update() {
-			var animator = Runtime?.Descriptor?.GetAnimator();
+			var animator = Runtime?.Descriptor?.Animator;
 			if (!animator || !animator.runtimeAnimatorController) return;
 
 			// Populate dès que le PlayableGraph est prêt

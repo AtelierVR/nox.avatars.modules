@@ -24,7 +24,7 @@ namespace Nox.CCK.Avatars.Voice {
 
 			// Try to get head transform from animator bones
 			if (!headTransform) {
-				var animator = descriptor.GetAnimator();
+				var animator = descriptor.Animator;
 				if (animator)
 					headTransform = animator.GetBoneTransform(HumanBodyBones.Head);
 			}
@@ -33,14 +33,14 @@ namespace Nox.CCK.Avatars.Voice {
 			if (headTransform)
 				return true;
 
-			var anchor = descriptor.GetAnchor();
+			var anchor = descriptor.Anchor;
 			headTransform = anchor.Find("Head")?.transform;
 			if (headTransform)
 				Logger.LogWarning("Head bone not found in animator, using transform named 'Head' as fallback.", this);
 
 			// Last resort: use the avatar root transform
 			if (!headTransform) {
-				headTransform = descriptor.GetAnchor().transform;
+				headTransform = descriptor.Anchor.transform;
 				Logger.LogWarning($"Head transform not found, using avatar root as fallback.", this);
 			}
 
@@ -63,14 +63,14 @@ namespace Nox.CCK.Avatars.Voice {
 
 			var module = modules.Length switch {
 				1 => modules.FirstOrDefault(),
-				0 => descriptor.GetAnchor().AddComponent<VoiceAvatarModule>(),
+				0 => descriptor.Anchor.AddComponent<VoiceAvatarModule>(),
 				_ => null
 			};
 
 			if (module)
 				return true;
 
-			Logger.LogError("Verify that the Avatar prefab has a valid CameraAvatarModule component.", descriptor.GetAnchor());
+			Logger.LogError("Verify that the Avatar prefab has a valid CameraAvatarModule component.", descriptor.Anchor);
 			return false;
 		}
 	}

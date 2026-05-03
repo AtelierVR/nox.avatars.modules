@@ -28,8 +28,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("headTransform"));
 
 			if (GUILayout.Button("Detect", GUILayout.Width(64))) {
-				var head = GetDescriptor()
-					.GetAnimator()
+				var head = GetDescriptor().Animator
 					?.GetBoneTransform(HumanBodyBones.Head);
 				serializedObject.FindProperty("headTransform").objectReferenceValue = head;
 			}

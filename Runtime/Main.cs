@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Nox.Avatars;
 using Nox.CCK.Avatars.Camera;
 using Nox.CCK.Avatars.EyeLooks;
@@ -11,9 +12,10 @@ using Nox.CCK.Mods.Cores;
 using Nox.CCK.Mods.Events;
 using Nox.CCK.Mods.Initializers;
 using UnityEngine;
+using Nox.Avatars.Rigging;
 
 namespace Nox.Avatars.Modules.Runtime {
-	public class Main : IMainModInitializer {
+	public class Main : IMainModInitializer, IRiggingBackendRegistry {
 		internal static IMainModCoreAPI     CoreAPI;
 		private         EventSubscription[] _events;
 
@@ -34,19 +36,35 @@ namespace Nox.Avatars.Modules.Runtime {
 			valid &= CameraAvatarModule.Check(descriptor);
 			valid &= AvatarParameterModule.Check(descriptor);
 			valid &= PlayableAvatarModule.Check(descriptor);
-			valid &= BaseRiggingModule.Check(descriptor);
+			valid &= RiggingSetupModule.Check(descriptor);
 			valid &= EyeLookAvatarModule.Check(descriptor);
 			valid &= VoiceAvatarModule.Check(descriptor);
 			valid &= ScaleAvatarModule.Check(descriptor);
+
 			context.Callback(valid);
 		}
 
 		public void OnDisposeMain() {
+			RiggingBackendRegistry.Clear();
 			foreach (var e in _events)
 				CoreAPI.EventAPI.Unsubscribe(e);
 			_events                                 = Array.Empty<EventSubscription>();
 			PlayableAvatarModule.GetAssetController = null;
 			CoreAPI                                 = null;
 		}
+
+		// ── IRiggingBackendRegistry ──────────────────────────────────────────────
+
+		void IRiggingBackendRegistry.Register(IRiggingBackend backend)                          
+			=> RiggingBackendRegistry.Register(backend);
+
+		void IRiggingBackendRegistry.Unregister(IRiggingBackend backend)                           
+			=> RiggingBackendRegistry.Unregister(backend);
+
+		IRiggingBackend IRiggingBackendRegistry.Resolve(IRuntimeAvatar context) 
+			=> RiggingBackendRegistry.Resolve(context);
+
+		IRiggingBackend[] IRiggingBackendRegistry.GetBackends()                                  
+			=> RiggingBackendRegistry.GetBackends();
 	}
 }

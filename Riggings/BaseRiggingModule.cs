@@ -5,17 +5,15 @@ using Nox.Avatars;
 using Nox.Avatars.Parameters;
 using Nox.Avatars.Rigging;
 using Nox.CCK.Players;
-using Nox.CCK.Utils;
 using UnityEngine;
-using Logger = Nox.CCK.Utils.Logger;
 using Transform = UnityEngine.Transform;
 
 namespace Nox.CCK.Avatars.Rigging {
 	public abstract class BaseRiggingModule : MonoBehaviour, IRiggingModule, IParameterGroup {
 		public IAvatarDescriptor Descriptor;
 
-		public readonly List<IParameter>  Parameters = new();
-		public readonly List<RiggingPart> Parts      = new();
+		public readonly List<IParameter> Parameters = new();
+		public readonly List<RiggingPart> Parts = new();
 
 		public abstract bool SetupParameters(BaseRiggingModule module);
 
@@ -23,97 +21,9 @@ namespace Nox.CCK.Avatars.Rigging {
 
 		public abstract void SetActive(HumanBodyBones bone, bool active);
 
-		
-		public int GetPriority()
-			=> 0;
-		
-		public async UniTask<bool> Setup(IRuntimeAvatar runtime) {
-			
-			
-			
-			// Vérification de sécurité pour éviter les NullReferenceException
-			if (runtime == null) {
-				Logger.LogError("RuntimeAvatar is null, cannot setup rigging.");
-				
-				return false;
-			}
 
-			// Supprimer le composant après l'initialisation
-			
-			var anchor = runtime.Descriptor.GetAnchor();
-
-			#if HAS_FINALIK
-			// Utilise FinalIK VR (préféré)
-			
-			var arguments = runtime.Arguments;
-			var ufik = arguments != null
-				&& arguments.TryGetValue("local", out var isLocalObj)
-				&& isLocalObj is true
-				&& arguments.TryGetValue("xr", out var allowXRObj)
-				&& allowXRObj is true;
-
-			if (ufik) {
-				
-				var fik = anchor.GetOrAddComponent<FinalIKAvatarModule>();
-				fik.Descriptor = runtime.Descriptor;
-				
-				FinalIKRigGenerator.Create(fik);
-				
-			} else {
-				
-				var rik = anchor.GetOrAddComponent<RigBuilderAvatarModule>();
-				rik.Descriptor = runtime.Descriptor;
-				
-				RigBuilderRigGenerator.Create(rik);
-				
-			}
-			#else
-			// Utilise RigBuilder (legacy)
-			
-			var rik = anchor.GetOrAddComponent<RigBuilderAvatarModule>();
-			rik.Descriptor = runtime.GetDescriptor();
-			
-			RigBuilderRigGenerator.Create(rik);
-			
-			#endif
-
-			
-			var module = anchor.GetComponent<BaseRiggingModule>();
-			if (!module) {
-				Logger.LogError("BaseRiggingModule component is missing on avatar anchor.");
-				
-				return false;
-			}
-
-			module.Descriptor = runtime.Descriptor;
-
-			// Vérification de sécurité pour éviter les NullReferenceException
-			if (module.Descriptor == null) {
-				Logger.LogError("Avatar descriptor is null, cannot setup rigging.");
-				
-				return false;
-			}
-
-			
-			if (!IKRigParameters.SetupParameters(module)) {
-				Logger.LogError("Failed to setup rigging parameters.");
-				
-				return false;
-			}
-
-			var paramModule = runtime.Descriptor.GetModules<IParameterModule>().FirstOrDefault();
-			foreach (var p in module.Parameters)
-				paramModule?.RegisterParameter(p);
-			
-
-			
-			await UniTask.NextFrame(); // Utiliser NextFrame pour une meilleure distribution de charge
-			
-			
-			
-			
-			return true;
-		}
+		public virtual UniTask<bool> Setup(IRuntimeAvatar runtime)
+			=> UniTask.FromResult(true);
 
 		bool IRiggingModule.TryGetPart(ushort id, out IRigPart part) {
 			part = Parts.FirstOrDefault(p => p.GetId() == id);
@@ -142,7 +52,7 @@ namespace Nox.CCK.Avatars.Rigging {
 		}
 
 		public Transform GetBone(HumanBodyBones bone)
-			=> Descriptor.GetAnimator().GetBoneTransform(bone);
+			=> Descriptor.Animator.GetBoneTransform(bone);
 
 		public IParameter[] GetParameters()
 			=> Parameters.Cast<IParameter>().ToArray();
@@ -153,15 +63,9 @@ namespace Nox.CCK.Avatars.Rigging {
 		public IParameter GetParameter(int hash)
 			=> Parameters.FirstOrDefault(p => p.GetKey() == hash);
 
-		public static bool Check(IAvatarDescriptor descriptor)
-			=> descriptor.GetModules<BaseRiggingModule>().Length switch {
-				1 => true,
-				0 => descriptor.GetAnchor().AddComponent<RigBuilderAvatarModule>(),
-				_ => false
-			};
-
 		private void OnDestroy() {
-			if (Descriptor == null) return;
+			if (Descriptor == null)
+				return;
 			var paramModule = Descriptor.GetModules<IParameterModule>().FirstOrDefault();
 			foreach (var p in Parameters)
 				paramModule?.UnregisterParameter(p);
