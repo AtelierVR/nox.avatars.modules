@@ -6,6 +6,7 @@ using Nox.CCK.Avatars.EyeLooks;
 using Nox.CCK.Avatars.Parameters;
 using Nox.CCK.Avatars.Playable;
 using Nox.CCK.Avatars.Rigging;
+using Nox.CCK.Avatars.Hand;
 using Nox.CCK.Avatars.Scale;
 using Nox.CCK.Avatars.Voice;
 using Nox.CCK.Mods.Cores;
@@ -47,6 +48,7 @@ namespace Nox.Avatars.Modules.Runtime {
 			valid &= EyeLookAvatarModule.Check(descriptor);
 			valid &= VoiceAvatarModule.Check(descriptor);
 			valid &= ScaleAvatarModule.Check(descriptor);
+			valid &= HandAvatarModule.Check(descriptor);
 
 			context.Callback(valid);
 		}

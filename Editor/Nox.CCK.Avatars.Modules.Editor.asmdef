@@ -4,6 +4,8 @@
   "references": [
     "Nox.Avatars",
     "Nox.CCK",
+    "Nox.Avatars.Hand",
+    "Nox.CCK.Avatars.Hand",
     "Nox.CCK.Avatars.EyeLooks",
     "Nox.CCK.Avatars.Parameters",
     "Nox.CCK.Avatars.Rigging",

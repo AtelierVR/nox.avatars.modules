@@ -38,28 +38,6 @@ namespace Nox.CCK.Avatars.Rigging {
 				return false;
 			}
 
-			if (module is BaseRiggingModule baseModule)
-				baseModule.Descriptor = runtime.Descriptor;
-
-			backend.SetupRig(module);
-
-			if (module is BaseRiggingModule bm) {
-				if (!IKRigParameters.SetupParameters(bm)) {
-					Logger.LogError("Failed to setup rigging parameters.");
-					return false;
-				}
-
-				var paramModule = runtime.Descriptor
-					.GetModules<IParameterModule>()
-					.FirstOrDefault();
-
-				foreach (var p in bm.Parameters)
-					paramModule?.RegisterParameter(p);
-			}
-
-            if(GetType() == typeof(RiggingSetupModule))
-                this.Destroy();
-
 			await UniTask.NextFrame();
 			return true;
 		}

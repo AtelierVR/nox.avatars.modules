@@ -6,6 +6,7 @@ using Nox.Avatars.Parameters;
 using Nox.Avatars.Rigging;
 using Nox.CCK.Players;
 using UnityEngine;
+using Logger = Nox.CCK.Utils.Logger;
 using Transform = UnityEngine.Transform;
 
 namespace Nox.CCK.Avatars.Rigging {
@@ -14,6 +15,27 @@ namespace Nox.CCK.Avatars.Rigging {
 
 		public readonly List<IParameter> Parameters = new();
 		public readonly List<RiggingPart> Parts = new();
+
+		public bool Before(IRuntimeAvatar runtime) {
+			Descriptor = runtime.Descriptor;
+			return true;
+		}
+
+		public bool After(IRuntimeAvatar runtime) {
+			if (!IKRigParameters.SetupParameters(this)) {
+				Logger.LogError("Failed to setup rigging parameters.");
+				return false;
+			}
+
+			var paramModule = runtime.Descriptor
+				.GetModules<IParameterModule>()
+				.FirstOrDefault();
+
+			foreach (var p in this.Parameters)
+				paramModule?.RegisterParameter(p);
+
+			return true;
+		}
 
 		public abstract bool SetupParameters(BaseRiggingModule module);
 

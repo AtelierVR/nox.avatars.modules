@@ -16,7 +16,8 @@
     "Nox.CCK.Avatars.Voice",
     "UniTask",
     "Nox.CCK.Avatars.Scale",
-    "Nox.Avatars.Rigging"
+    "Nox.Avatars.Rigging",
+    "Nox.CCK.Avatars.Hand"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

@@ -4,6 +4,8 @@
   "references": [
     "Nox.Avatars.Modules.Runtime",
     "Nox.CCK.Avatars.Camera",
+    "Nox.CCK.Avatars.Hand",
+    "Nox.Avatars.Hand",
     "Nox.CCK.Avatars.EyeLooks",
     "Nox.CCK.Avatars.Parameters",
     "Nox.CCK.Avatars.Playable",

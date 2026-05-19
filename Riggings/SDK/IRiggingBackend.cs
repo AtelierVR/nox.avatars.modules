@@ -18,8 +18,5 @@ namespace Nox.Avatars.Rigging {
 
 		/// <summary>Creates or retrieves the module component on the avatar anchor.</summary>
 		IRiggingModule Instantiate(IRuntimeAvatar runtime);
-
-		/// <summary>Generates the IK rig on the given module after it has been attached.</summary>
-		void SetupRig(IRiggingModule module);
 	}
 }
