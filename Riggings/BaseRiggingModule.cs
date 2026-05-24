@@ -48,24 +48,32 @@ namespace Nox.CCK.Avatars.Rigging {
 			=> UniTask.FromResult(true);
 
 		bool IRiggingModule.TryGetPart(ushort id, out IRigPart part) {
-			part = Parts.FirstOrDefault(p => p.GetId() == id);
-			return part != null;
+			for (var i = 0; i < Parts.Count; i++) {
+				if (Parts[i].GetId() != id) continue;
+				part = Parts[i];
+				return true;
+			}
+			part = null;
+			return false;
 		}
 
 		public Transform GetPart(HumanBodyBones bone) {
 			var index = bone.ToIndex();
-			var part  = Parts.FirstOrDefault(p => p.GetId() == index);
-			return part?.GetTransform();
+			for (var i = 0; i < Parts.Count; i++) {
+				if (Parts[i].GetId() == index)
+					return Parts[i].GetTransform();
+			}
+			return null;
 		}
 
 		public IRigPart[] GetParts()
 			=> Parts.Cast<IRigPart>().ToArray();
 
 		public void SetPart(HumanBodyBones bone, Transform part) {
-			var index        = bone.ToIndex();
-			var existingPart = Parts.FirstOrDefault(p => p.GetId() == index);
-			if (existingPart != null) {
-				existingPart.SetTransform(part);
+			var index = bone.ToIndex();
+			for (var i = 0; i < Parts.Count; i++) {
+				if (Parts[i].GetId() != index) continue;
+				Parts[i].SetTransform(part);
 				return;
 			}
 
@@ -79,11 +87,21 @@ namespace Nox.CCK.Avatars.Rigging {
 		public IParameter[] GetParameters()
 			=> Parameters.Cast<IParameter>().ToArray();
 
-		public IParameter GetParameter(string n)
-			=> Parameters.FirstOrDefault(p => p.GetName() == n);
+		public IParameter GetParameter(string n) {
+			for (var i = 0; i < Parameters.Count; i++) {
+				if (Parameters[i].GetName() == n)
+					return Parameters[i];
+			}
+			return null;
+		}
 
-		public IParameter GetParameter(int hash)
-			=> Parameters.FirstOrDefault(p => p.GetKey() == hash);
+		public IParameter GetParameter(int hash) {
+			for (var i = 0; i < Parameters.Count; i++) {
+				if (Parameters[i].GetKey() == hash)
+					return Parameters[i];
+			}
+			return null;
+		}
 
 		private void OnDestroy() {
 			if (Descriptor == null)
