@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Nox.Avatars;
 using Nox.Avatars.Hand;
@@ -11,10 +12,10 @@ namespace Nox.CCK.Avatars.Hand {
 		[Tooltip("Hand offset descriptors. Add one entry per hand you want to configure.")]
 		public Hand[] hands = Array.Empty<Hand>();
 
-		public int GetPriority()
-			=> 0;
+		public int Priority
+			=> 40;
 
-		public UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar)
+			public UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar, AvatarModulePhase phase, CancellationToken token = default)
 			=> UniTask.FromResult(true);
 
 		public void Dispose() { }

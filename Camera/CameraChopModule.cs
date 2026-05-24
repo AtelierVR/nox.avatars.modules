@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Nox.Avatars;
 using Nox.CCK.Utils;
@@ -17,21 +18,19 @@ namespace Nox.CCK.Avatars.Camera {
 	/// </summary>
 	[DisallowMultipleComponent]
 	public class CameraChopModule : CameraChop, IAvatarModule {
-		public int GetPriority() 
-			=> 0;
+		public int Priority
+			=> 120;
 
-		public async UniTask<bool> Setup(IRuntimeAvatar runtime) {
+			public async UniTask<bool> Setup(IRuntimeAvatar runtime, AvatarModulePhase phase, CancellationToken token = default) {
+				if (phase != AvatarModulePhase.Init) return true;
 			// Pre-validation
 			if (Bones == null || Bones.Length == 0) {
 				Logger.LogWarning("No head/neck bones found, cannot perform camera chop.", tag: nameof(CameraChopModule));
 				enabled = false;
-				return true; // Return true to avoid retrying setup; the module will just be disabled
+				return true;
 			}
 
-			await UniTask.Yield();
-
-			// Case when is not the local avatar, or no controller/camera is available. 
-			// Just disable the module and do nothing.
+			await UniTask.Yield(cancellationToken: token);
 			if (!runtime.Arguments.TryGetValue("local", out var c) || c is not bool isLocal || !isLocal) {	
 				enabled = false;
 				return true;

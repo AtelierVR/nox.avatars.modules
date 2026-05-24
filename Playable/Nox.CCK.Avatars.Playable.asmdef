@@ -7,7 +7,8 @@
         "Nox.CCK.Avatars.StateMachines",
         "Nox.Avatars.StateMachines",
         "UniTask",
-        "Nox.CCK.Avatars.Common"
+        "Nox.CCK.Avatars.Common",
+        "Unity.PlayableGraphVisualizer"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -16,6 +17,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.playablegraph-visualizer",
+            "expression": "",
+            "define": "HAS_VISUALIZER"
+        }
+    ],
     "noEngineReferences": false
 }

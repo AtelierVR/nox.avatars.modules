@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Nox.Avatars;
 using Nox.Avatars.Parameters;
@@ -36,19 +37,24 @@ namespace Nox.CCK.Avatars.Parameters {
 		private readonly List<IParameter>              _paramList = new();
 		private readonly Dictionary<string, IParameter> _byName   = new();
 		private readonly Dictionary<int,    IParameter> _byHash   = new();
-		private          RuntimeAnimatorController     _lastController;
-		private          bool                          _populated;
 
 		public IParameter[] Parameters { get; private set; } = Array.Empty<IParameter>();
 
-		public int GetPriority()
-			=> 100;
+		public int Priority
+			=> 10;
 
-		public async UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar) {
-			await UniTask.Yield();
-			Runtime    = runtimeAvatar;
-			_populated = false;
-			return true;
+		public async UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar, AvatarModulePhase phase, CancellationToken token = default) {
+			await UniTask.Yield(cancellationToken: token);
+			switch (phase) {
+				case AvatarModulePhase.Init:
+					Runtime    = runtimeAvatar;
+					return true;
+				case AvatarModulePhase.Post:
+					PopulateParameters();
+					return true;
+				default:
+					return true;
+			}
 		}
 
 		public void RegisterParameter(IParameter parameter) {
@@ -71,53 +77,21 @@ namespace Nox.CCK.Avatars.Parameters {
 			var animator = Runtime?.Descriptor?.Animator;
 			if (!animator || !animator.runtimeAnimatorController || !animator.playableGraph.IsValid()) return;
 
-			_lastController = animator.runtimeAnimatorController;
 			var entries = parameters?.parameters ?? Array.Empty<ParameterEntry>();
 
-			// Paramètres de l'Animator
-			foreach (var parameter in animator.parameters) {
-				var entry = entries.FirstOrDefault(e => e.GetNameHash() == parameter.nameHash);
-				RegisterParameter(new AnimatorBaseParameter { Animator = animator, Parameter = parameter, Entry = entry });
-			}
-
-			// Paramètres des contrôleurs du playable graph
+			// Paramètres des contrôleurs du playable graph (priorité haute)
 			foreach (var controller in animator.GetControllers()) {
 				for (var i = 0; i < controller.GetParameterCount(); i++) {
 					var cp    = controller.GetParameter(i);
 					var entry = entries.FirstOrDefault(e => e.GetNameHash() == cp.nameHash);
-					RegisterParameter(new PlayableBaseParameter { Animator = animator, Controller = controller, Parameter = cp, Entry = entry });
+					RegisterParameter(new PlayableBaseParameter { Controller = controller, Parameter = cp, Entry = entry });
 				}
 			}
 
-			_populated = true;
-		}
-
-		private void RepopulateAnimatorParameters() {
-			var animator = Runtime?.Descriptor?.Animator;
-			if (!animator) return;
-
-			_lastController = animator.runtimeAnimatorController;
-			_history.Clear();
-
-			// Retirer les anciens paramètres liés à l'animator/playable
-			foreach (var p in _paramList.OfType<AnimatorBaseParameter>().ToList())
-				UnregisterParameter(p);
-			foreach (var p in _paramList.OfType<PlayableBaseParameter>().ToList())
-				UnregisterParameter(p);
-
-			var entries = parameters?.parameters ?? Array.Empty<ParameterEntry>();
-
+			// Paramètres de l'Animator de base (dédupliqués si déjà enregistrés)
 			foreach (var parameter in animator.parameters) {
 				var entry = entries.FirstOrDefault(e => e.GetNameHash() == parameter.nameHash);
 				RegisterParameter(new AnimatorBaseParameter { Animator = animator, Parameter = parameter, Entry = entry });
-			}
-
-			foreach (var controller in animator.GetControllers()) {
-				for (var i = 0; i < controller.GetParameterCount(); i++) {
-					var cp    = controller.GetParameter(i);
-					var entry = entries.FirstOrDefault(e => e.GetNameHash() == cp.nameHash);
-					RegisterParameter(new PlayableBaseParameter { Animator = animator, Controller = controller, Parameter = cp, Entry = entry });
-				}
 			}
 		}
 
@@ -129,21 +103,5 @@ namespace Nox.CCK.Avatars.Parameters {
 
 		public IParameter GetParameter(int    hash) 
 			=> _byHash.GetValueOrDefault(hash);
-
-		public void Update() {
-			var animator = Runtime?.Descriptor?.Animator;
-			if (!animator || !animator.runtimeAnimatorController) return;
-
-			// Populate dès que le PlayableGraph est prêt
-			if (!_populated) {
-				if (animator.playableGraph.IsValid())
-					PopulateParameters();
-				return;
-			}
-
-			// Si le controller a changé, reconstruire les paramètres animator/playable
-			if (_lastController != animator.runtimeAnimatorController)
-				RepopulateAnimatorParameters();
-		}
 	}
 }

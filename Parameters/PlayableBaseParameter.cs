@@ -4,16 +4,15 @@ using UnityEngine.Animations;
 namespace Nox.CCK.Avatars.Parameters {
 	public class PlayableBaseParameter : BaseParameter {
 		internal AnimatorControllerPlayable Controller;
-		internal Animator                   Animator;
 
 		override protected void SetFloat(float value)
-			=> Animator.SetFloat(GetKey(), value);
+			=> Controller.SetFloat(GetKey(), value);
 
 		override protected void SetInteger(int value)
-			=> Animator.SetInteger(GetKey(), value);
+			=> Controller.SetInteger(GetKey(), value);
 
 		override protected void SetBool(bool value)
-			=> Animator.SetBool(GetKey(), value);
+			=> Controller.SetBool(GetKey(), value);
 
 		override protected bool GetBool()
 			=> Controller.GetBool(GetKey());

@@ -2,6 +2,7 @@ using System;
 using Nox.Avatars;
 using Nox.CCK.Build;
 using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using Logger = Nox.CCK.Utils.Logger;
@@ -19,11 +20,12 @@ namespace Nox.CCK.Avatars.EyeLooks {
 		public void SetEyeLooks(BaseEyeLook[] value)
 			=> eyeLooks = value ?? Array.Empty<BaseEyeLook>();
 
-		public int GetPriority()
-			=> 0;
+		public int Priority
+			=> 30;
 
-		public async UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar) {
-			await UniTask.Yield();
+			public async UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar, AvatarModulePhase phase, CancellationToken token = default) {
+				if (phase != AvatarModulePhase.Init) return true;
+			await UniTask.Yield(cancellationToken: token);
 			_descriptor = runtimeAvatar.Descriptor;
 			return true;
 		}

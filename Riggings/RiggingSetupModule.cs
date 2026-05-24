@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Nox.Avatars;
 using Nox.Avatars.Parameters;
@@ -18,14 +19,18 @@ namespace Nox.CCK.Avatars.Rigging {
 	[DisallowMultipleComponent]
 	public class RiggingSetupModule : MonoBehaviour, IAvatarModule {
 
+		public int Priority
+			=> 70;
+
 		public static bool Check(IAvatarDescriptor descriptor)
 			=> descriptor.GetModules<IRiggingModule>().Length switch {
 				1 => true,
-                0 => descriptor.Anchor.AddComponent<RiggingSetupModule>(),
+				0 => descriptor.Anchor.AddComponent<RiggingSetupModule>(),
 				_ => false
 			};
 
-        public async UniTask<bool> Setup(IRuntimeAvatar runtime) {
+		public async UniTask<bool> Setup(IRuntimeAvatar runtime, AvatarModulePhase phase, CancellationToken token = default) {
+			if (phase != AvatarModulePhase.Init) return true;
 			var backend = RiggingBackendRegistry.Resolve(runtime);
 			if (backend == null) {
 				Logger.LogWarning("No rigging backend available — rig will not be set up.");
@@ -38,7 +43,7 @@ namespace Nox.CCK.Avatars.Rigging {
 				return false;
 			}
 
-			await UniTask.NextFrame();
+			await UniTask.NextFrame(cancellationToken: token);
 			return true;
 		}
 	}

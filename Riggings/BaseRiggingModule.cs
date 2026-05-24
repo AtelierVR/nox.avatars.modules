@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Nox.Avatars;
 using Nox.Avatars.Parameters;
@@ -15,6 +16,9 @@ namespace Nox.CCK.Avatars.Rigging {
 
 		public readonly List<IParameter> Parameters = new();
 		public readonly List<RiggingPart> Parts = new();
+
+		public int Priority
+			=> 70;
 
 		public bool Before(IRuntimeAvatar runtime) {
 			Descriptor = runtime.Descriptor;
@@ -44,12 +48,13 @@ namespace Nox.CCK.Avatars.Rigging {
 		public abstract void SetActive(HumanBodyBones bone, bool active);
 
 
-		public virtual UniTask<bool> Setup(IRuntimeAvatar runtime)
+		public virtual UniTask<bool> Setup(IRuntimeAvatar runtime, AvatarModulePhase phase, CancellationToken token = default)
 			=> UniTask.FromResult(true);
 
 		bool IRiggingModule.TryGetPart(ushort id, out IRigPart part) {
 			for (var i = 0; i < Parts.Count; i++) {
-				if (Parts[i].GetId() != id) continue;
+				if (Parts[i].GetId() != id)
+					continue;
 				part = Parts[i];
 				return true;
 			}
@@ -72,7 +77,8 @@ namespace Nox.CCK.Avatars.Rigging {
 		public void SetPart(HumanBodyBones bone, Transform part) {
 			var index = bone.ToIndex();
 			for (var i = 0; i < Parts.Count; i++) {
-				if (Parts[i].GetId() != index) continue;
+				if (Parts[i].GetId() != index)
+					continue;
 				Parts[i].SetTransform(part);
 				return;
 			}

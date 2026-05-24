@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Nox.Avatars;
 using Nox.Avatars.Camera;
@@ -22,8 +23,8 @@ namespace Nox.CCK.Avatars.Scale {
 		private          IRuntimeAvatar   _runtimeAvatar;
 		private          IParameterModule _parameterModule;
 
-		public int GetPriority()
-			=> 1;
+		public int Priority
+			=> 60;
 
 		public float Scale {
 			get => _runtimeAvatar.Descriptor.Anchor.transform.localScale.y;
@@ -76,7 +77,8 @@ namespace Nox.CCK.Avatars.Scale {
 			set => Scale = value ? Scale : InitialScale;
 		}
 
-		public UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar) {
+		public UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar, AvatarModulePhase phase, CancellationToken token = default) {
+			if (phase != AvatarModulePhase.Init) return UniTask.FromResult(true);
 			_runtimeAvatar = runtimeAvatar;
 			InitialHeight = RuntimeHeight();
 			InitialScale = Scale;

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Nox.Avatars;
 using UnityEngine;
@@ -13,45 +14,46 @@ namespace Nox.CCK.Avatars.Proxies {
 	public class ProxiesAvatarModule : MonoBehaviour, IAvatarModule {
 		public ReplaceClip[] clips;
 
-		public int GetPriority()
-			=> 0;
-		
-		public async UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar) {
-			
-			
-			
+		public int Priority
+			=> 110;
+
+public async UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar, AvatarModulePhase phase, CancellationToken token = default) {
+				if (phase != AvatarModulePhase.Init) return true;
+
+
+
 			if (clips == null || clips.Length == 0) {
 				Logger.LogWarning("Aucun clip de remplacement spécifié");
-				
+
 				return true;
 			}
 
-			
+
 			var animator      = runtimeAvatar.Descriptor.Animator;
 			var playableGraph = animator.playableGraph;
 
 			try {
 				// Créer un dictionnaire pour un accès rapide aux remplacements
-				
+
 				var replacementDict = clips
 					.ToDictionary(clip => clip.original, clip => clip.replacement);
-				
+
 
 				// Optimisation: Supprimer le yield inutile pour réduire la latence
 				// await UniTask.Yield(); // Supprimé - pas nécessaire ici
 
 				// Remplacer les clips dans le PlayableGraph
-				
+
 				ReplaceClipsInPlayableGraph(playableGraph, replacementDict);
-				
+
 
 				Logger.Log($"Remplacement de {clips.Length} clips d'animation effectué avec succès");
-				
-				
+
+
 				return true;
 			} catch (Exception ex) {
 				Logger.LogError($"Erreur lors du remplacement des clips: {ex.Message}");
-				
+
 				return false;
 			}
 		}

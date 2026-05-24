@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Nox.Avatars;
 using Nox.Avatars.Camera;
@@ -15,13 +16,14 @@ namespace Nox.CCK.Avatars.Camera {
 		private IRuntimeAvatar _runtimeAvatar;
 
 
-		public int GetPriority()
-			=> 0;
+		public int Priority
+			=> 20;
 
-		public async UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar) {
+public async UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar, AvatarModulePhase phase, CancellationToken token = default) {
+				if (phase != AvatarModulePhase.Init) return true;
 			_runtimeAvatar = runtimeAvatar;
 
-			await UniTask.Yield();
+			await UniTask.Yield(cancellationToken: token);
 			var descriptor = _runtimeAvatar.Descriptor;
 
 			// Try to get head transform from animator bones
