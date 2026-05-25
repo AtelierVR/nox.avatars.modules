@@ -1,5 +1,6 @@
 {
   "name": "nox.avatars.modules",
-  "displayName": "Nox - Avatar's Modules",
-  "version": "1.0.0"
+  "displayName": "Nox - Avatar Modules",
+  "version": "1.0.0",
+  "description": "Modular avatar feature and component system for Nox."
 }

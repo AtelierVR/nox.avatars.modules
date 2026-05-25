@@ -5,9 +5,9 @@
     "fr.hactazia.avatars.modules",
     "avatars.modules"
   ],
-  "name": "Avatar Modules API",
+  "name": "Avatar Modules",
   "version": "1.0.0",
-  "description": "API for Nox Avatar's Modules",
+  "description": "Modular avatar feature and component system for Nox.",
   "license": "GPL-3.0",
   "icon": null,
   "contact": {
