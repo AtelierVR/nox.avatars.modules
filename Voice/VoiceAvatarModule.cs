@@ -32,13 +32,12 @@ namespace Nox.CCK.Avatars.Voice {
 			}
 
 			// Fallback: search for a transform named "Head" in the hierarchy
-			if (headTransform)
-				return true;
-
-			var anchor = descriptor.Anchor;
-			headTransform = anchor.Find("Head")?.transform;
-			if (headTransform)
-				Logger.LogWarning("Head bone not found in animator, using transform named 'Head' as fallback.", this);
+			if (!headTransform) {
+				var anchor = descriptor.Anchor;
+				headTransform = anchor.Find("Head")?.transform;
+				if (headTransform)
+					Logger.LogWarning("Head bone not found in animator, using transform named 'Head' as fallback.", this);
+			}
 
 			// Last resort: use the avatar root transform
 			if (!headTransform) {
