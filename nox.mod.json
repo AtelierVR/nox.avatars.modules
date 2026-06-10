@@ -23,7 +23,6 @@
       "website": "https://hactazia.fr/"
     }
   ],
-  "contributors": [],
   "relations": [
     {
       "id": "avatar",
@@ -45,7 +44,5 @@
     "main": [
       "Nox.Avatars.Modules.Runtime.Main"
     ]
-  },
-  "references": [],
-  "permissions": []
+  }
 }
