@@ -2,7 +2,6 @@
 <linker>
 	<assembly fullname="Nox.Avatars.Camera" preserve="all" />
 	<assembly fullname="Nox.Avatars.Hand" preserve="all" />
-	<assembly fullname="nox.avatars.modules" preserve="all" />
 	<assembly fullname="Nox.Avatars.Modules.Runtime" preserve="all" />
 	<assembly fullname="Nox.Avatars.Parameters" preserve="all" />
 	<assembly fullname="Nox.Avatars.Rigging" preserve="all" />
