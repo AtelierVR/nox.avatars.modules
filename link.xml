@@ -12,7 +12,6 @@
 	<assembly fullname="Nox.CCK.Avatars.Common" preserve="all" />
 	<assembly fullname="Nox.CCK.Avatars.EyeLooks" preserve="all" />
 	<assembly fullname="Nox.CCK.Avatars.Hand" preserve="all" />
-	<assembly fullname="Nox.CCK.Avatars.Modules.Editor" preserve="all" />
 	<assembly fullname="Nox.CCK.Avatars.Parameters" preserve="all" />
 	<assembly fullname="Nox.CCK.Avatars.Playable" preserve="all" />
 	<assembly fullname="Nox.CCK.Avatars.Proxies" preserve="all" />
