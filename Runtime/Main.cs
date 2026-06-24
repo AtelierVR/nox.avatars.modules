@@ -23,7 +23,7 @@ namespace Nox.Avatars.Modules.Runtime {
 
 		internal static IControllerAPI ControllerAPI
 			=> CoreAPI?.ModAPI
-				.GetMod("controller")
+				.GetMod("controllers")
 				?.GetInstance<IControllerAPI>();
 
 		public void OnInitializeMain(IMainModCoreAPI api) {

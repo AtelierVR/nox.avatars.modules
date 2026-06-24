@@ -27,7 +27,14 @@
     {
       "id": "avatar",
       "type": "depends",
-      "version": ">=1.0.0"
+      "version": ">=1.0.0",
+      "register": "git+https://github.com/AtelierVR/nox.avatars.git"
+    },
+    {
+      "id": "controllers",
+      "type": "depends",
+      "version": ">=1.0.0",
+      "register": "git+https://github.com/AtelierVR/nox.controllers.git"
     },
     {
       "id": "com.unity.modules.uielements",
@@ -38,6 +45,16 @@
       "id": "com.unity.modules.ui",
       "type": "depends",
       "register": "upm+com.unity.modules.ui@1.0.0"
+    }
+  ],
+  "constraints": [
+    {
+      "type": "after",
+      "id": "avatar"
+    },
+    {
+      "type": "after",
+      "id": "controllers"
     }
   ],
   "entrypoints": {
