@@ -29,12 +29,12 @@ namespace Nox.CCK.Avatars.Hand {
 
 		private void OnDrawGizmos() {
 			if (!this.IsValid(out var error)) {
-				Gizmos.color = Color.red;
+				Gizmos.Color = Color.red;
 				Gizmos.DrawLabel(transform.position, "Invalid Finger: " + error.Message);
 				return;
 			}
 
-			Gizmos.color = Color.cyan;
+			Gizmos.Color = Color.cyan;
 			var p = Proximal ? Proximal.position : transform.position;
 			var i = Intermediate ? Intermediate.position : transform.position;
 			var d = Distal ? Distal.position : transform.position;

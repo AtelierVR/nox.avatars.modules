@@ -41,25 +41,25 @@ namespace Nox.CCK.Avatars.Hand {
 
 		private void OnDrawGizmos() {
 			if (!this.IsValid(out var error)) {
-				Gizmos.color = Color.red;
+				Gizmos.Color = Color.red;
 				Gizmos.DrawLabel(transform.position, "Invalid Hand: " + error.Message);
 				return;
 			}
 
 			if (!Palm) {
-				Gizmos.color = Color.orange;
+				Gizmos.Color = Color.orange;
 				Gizmos.DrawLabel(transform.position, "Hand has no palm transform.");
 			} else {
-				Gizmos.color = Color.darkGreen;
+				Gizmos.Color = Color.darkGreen;
 				Gizmos.DrawWireDisc(Palm.position, Palm.rotation * Vector3.forward, 0.05f);
 				Gizmos.DrawArrow(Palm.position, Palm.rotation * Vector3.forward, 0.05f);
 			}
 
-			Gizmos.color = Color.cyan;
+			Gizmos.Color = Color.cyan;
 			foreach (var f in fingers) {
 				Exception fingerError = null;
 				if (!f || !f.IsValid(out fingerError)) {
-					Gizmos.color = Color.red;
+					Gizmos.Color = Color.red;
 					var pos = f ? f.transform.position : transform.position;
 					Gizmos.DrawLabel(pos, "Invalid Finger: " + (f ? fingerError!.Message : "Finger is null."));
 					continue;
@@ -75,18 +75,18 @@ namespace Nox.CCK.Avatars.Hand {
 				var pivotWorldPos = Anchor.TransformPoint(pivotPositionOffset);
 				var pivotWorldRot = Anchor.rotation * pivotRotationOffset;
 				// Line from anchor to pivot
-				Gizmos.color = Color.yellow;
+				Gizmos.Color = Color.yellow;
 				Gizmos.DrawLine(Anchor.position, pivotWorldPos);
 				// Disc at pivot
 				Gizmos.DrawWireDisc(pivotWorldPos, pivotWorldRot * Vector3.up, 0.015f);
 				// Pivot orientation axes
-				Gizmos.color = Color.blue;
+				Gizmos.Color = Color.blue;
 				Gizmos.DrawArrow(pivotWorldPos, pivotWorldRot * Vector3.forward, 0.05f);
-				Gizmos.color = Color.red;
+				Gizmos.Color = Color.red;
 				Gizmos.DrawArrow(pivotWorldPos, pivotWorldRot * Vector3.right, 0.04f);
-				Gizmos.color = Color.green;
+				Gizmos.Color = Color.green;
 				Gizmos.DrawArrow(pivotWorldPos, pivotWorldRot * Vector3.up, 0.04f);
-				Gizmos.color = Color.yellow;
+				Gizmos.Color = Color.yellow;
 				Gizmos.DrawLabel(pivotWorldPos, "Pivot");
 			}
 		}
