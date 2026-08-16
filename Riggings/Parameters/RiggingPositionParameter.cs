@@ -6,10 +6,10 @@ using Nox.CCK.Network;
 namespace Nox.CCK.Avatars.Rigging.Parameters {
 	public class RiggingPositionParameter : IParameter {
 		private readonly HumanBodyBones      _bone;
-		private readonly BaseRiggingModule _module;
+		private readonly BaseRigging _module;
 		private readonly string              _parameterName;
 
-		public RiggingPositionParameter(HumanBodyBones bone, BaseRiggingModule module) {
+		public RiggingPositionParameter(HumanBodyBones bone, BaseRigging module) {
 			_bone          = bone;
 			_module        = module;
 			_parameterName = $"tracking/{bone.ToString().ToSnakeCase()}/position";
@@ -19,7 +19,7 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 			=> _parameterName;
 
 		public bool IsValid()
-			=> _module && _module.GetPart(_bone);
+			=> _module != null && _module.GetPart(_bone) != null;
 
 		public int GetKey()
 			=> _parameterName.GetHashCode();
@@ -31,12 +31,14 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 			=> ParameterFlags.Persistent;
 
 		public object Get()
-			=> _module?.GetPart(_bone)?.position ?? Vector3.zero;
+			=> _module != null ? _module.GetPart(_bone)?.position ?? Vector3.zero : Vector3.zero;
 
 
 		public void Set(object value) {
-			if (!_module) return;
-			_module.GetPart(_bone).position = value.ToVector3();
+			if (_module == null) return;
+			var part = _module.GetPart(_bone);
+			if (part != null)
+				part.position = value.ToVector3();
 		}
 	}
 }

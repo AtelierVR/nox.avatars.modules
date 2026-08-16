@@ -2,7 +2,8 @@
   "name": "Nox.Avatars.Rigging",
   "rootNamespace": "",
   "references": [
-    "Nox.Avatars"
+    "Nox.Avatars",
+    "Nox.Avatars.Parameters"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

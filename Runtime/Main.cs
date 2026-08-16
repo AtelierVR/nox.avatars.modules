@@ -44,7 +44,7 @@ namespace Nox.Avatars.Modules.Runtime {
 			valid &= CameraChopModule.Check(descriptor);
 			valid &= AvatarParameterModule.Check(descriptor);
 			valid &= PlayableAvatarModule.Check(descriptor);
-			valid &= RiggingSetupModule.Check(descriptor);
+			valid &= RigManagerModule.Check(descriptor);
 			valid &= EyeLookAvatarModule.Check(descriptor);
 			valid &= VoiceAvatarModule.Check(descriptor);
 			valid &= ScaleAvatarModule.Check(descriptor);

@@ -52,7 +52,15 @@ namespace Nox.CCK.Avatars.Rigging {
 				.OrderByDescending(t => t.score)
 				.Select(t => t.backend)
 				.FirstOrDefault();
-		
+
+		/// <summary>
+		/// Returns the backend whose <see cref="IRiggingBackend.Id"/> matches the given id,
+		/// or <c>null</c> if no backend with that id is registered. Used for hot-swapping
+		/// the rig to match a remote player's backend (e.g. <c>"finalik"</c> vs <c>"rigbuilder"</c>).
+		/// </summary>
+		public static IRiggingBackend Resolve(string backendId)
+			=> _backends.FirstOrDefault(b => b.Id == backendId);
+
 		/// <summary>Returns a snapshot of all registered backends.</summary>
 		public static IRiggingBackend[] GetBackends()
 			=> _backends.ToArray();

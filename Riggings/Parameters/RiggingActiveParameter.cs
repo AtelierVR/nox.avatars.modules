@@ -7,10 +7,10 @@ using Nox.CCK.Network;
 namespace Nox.CCK.Avatars.Rigging.Parameters {
 	public class RiggingActiveParameter : IParameter {
 		private readonly HumanBodyBones _bone;
-		private readonly BaseRiggingModule _module;
+		private readonly BaseRigging _module;
 		private readonly string _name;
 
-		public RiggingActiveParameter(HumanBodyBones bone, BaseRiggingModule module) {
+		public RiggingActiveParameter(HumanBodyBones bone, BaseRigging module) {
 			_bone   = bone;
 			_module = module;
 			_name   = $"tracking/{bone.ToString().ToSnakeCase()}/active";
@@ -20,7 +20,7 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 			=> _name;
 
 		public bool IsValid()
-			=> _module && _module.GetPart(_bone);
+			=> _module != null && _module.GetPart(_bone) != null;
 
 		public int GetKey()
 			=> _name.GetHashCode();
@@ -33,10 +33,10 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 				| ParameterFlags.OwnerSyncsToViewers;
 
 		public object Get()
-			=> _module && _module.IsActive(_bone);
+			=> _module != null && _module.IsActive(_bone);
 
 		public void Set(object value) {
-			if (!_module)
+			if (_module == null)
 				return;
 			_module.SetActive(_bone, value.ToBool());
 		}

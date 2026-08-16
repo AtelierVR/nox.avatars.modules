@@ -16,7 +16,10 @@ namespace Nox.Avatars.Rigging {
 		/// </summary>
 		int CanHandle(IRuntimeAvatar runtime);
 
-		/// <summary>Creates or retrieves the module component on the avatar anchor.</summary>
-		IRiggingModule Instantiate(IRuntimeAvatar runtime);
+		/// <summary>
+		/// Creates a rig instance for the given runtime avatar. Returns <c>null</c> on failure.
+		/// The returned <see cref="IRigging"/> owns its generated IK targets and parameters.
+		/// </summary>
+		IRigging Create(IRuntimeAvatar runtime);
 	}
 }

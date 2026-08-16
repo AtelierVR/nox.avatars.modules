@@ -1,24 +1,31 @@
-using System.Linq;
 using System.Collections.Generic;
-using System.Threading;
-using Cysharp.Threading.Tasks;
+using System.Linq;
 using Nox.Avatars;
 using Nox.Avatars.Parameters;
 using Nox.Avatars.Rigging;
 using Nox.CCK.Players;
 using UnityEngine;
 using Logger = Nox.CCK.Utils.Logger;
+using Object = UnityEngine.Object;
 using Transform = UnityEngine.Transform;
 
 namespace Nox.CCK.Avatars.Rigging {
-	public abstract class BaseRiggingModule : MonoBehaviour, IRiggingModule, IParameterGroup {
+	/// <summary>
+	/// Base (non-MonoBehaviour) implementation of <see cref="IRigging"/>.
+	/// Backends derive from this and provide <see cref="SetupParameters"/> plus the rig
+	/// generator that creates the IK targets and populates <see cref="Parts"/>.
+	///
+	/// Instances are created, swapped and disposed by the rig manager owning the avatar.
+	/// They are never attached as components.
+	/// </summary>
+	public abstract class BaseRigging : IRigging {
 		public IAvatarDescriptor Descriptor;
 
 		public readonly List<IParameter> Parameters = new();
 		public readonly List<RiggingPart> Parts = new();
 
-		public int Priority
-			=> 70;
+		/// <summary>The id of the backend that created this rig (e.g. "rigbuilder", "finalik").</summary>
+		public string Id { get; set; }
 
 		public bool Before(IRuntimeAvatar runtime) {
 			Descriptor = runtime.Descriptor;
@@ -35,23 +42,19 @@ namespace Nox.CCK.Avatars.Rigging {
 				.GetModules<IParameterModule>()
 				.FirstOrDefault();
 
-			foreach (var p in this.Parameters)
+			foreach (var p in Parameters)
 				paramModule?.RegisterParameter(p);
 
 			return true;
 		}
 
-		public abstract bool SetupParameters(BaseRiggingModule module);
+		public abstract bool SetupParameters(BaseRigging module);
 
 		public abstract bool IsActive(HumanBodyBones bone);
 
 		public abstract void SetActive(HumanBodyBones bone, bool active);
 
-
-		public virtual UniTask<bool> Setup(IRuntimeAvatar runtime, AvatarModulePhase phase, CancellationToken token = default)
-			=> UniTask.FromResult(true);
-
-		bool IRiggingModule.TryGetPart(ushort id, out IRigPart part) {
+		public bool TryGetPart(ushort id, out IRigPart part) {
 			for (var i = 0; i < Parts.Count; i++) {
 				if (Parts[i].GetId() != id)
 					continue;
@@ -109,7 +112,26 @@ namespace Nox.CCK.Avatars.Rigging {
 			return null;
 		}
 
-		private void OnDestroy() {
+		/// <summary>
+		/// Destroys any generated IK target GameObjects owned by this rig.
+		/// Called before disposing/swapping so stale VRIK_*/IKRig_* targets do not linger.
+		/// </summary>
+		public virtual void Dispose() {
+			UnregisterParameters();
+			Cleanup();
+		}
+
+		protected void Cleanup() {
+			for (var i = Parts.Count - 1; i >= 0; i--) {
+				var part = Parts[i];
+				Parts.RemoveAt(i);
+				var t = part.GetTransform();
+				if (t && t.gameObject)
+					Object.Destroy(t.gameObject);
+			}
+		}
+
+		protected void UnregisterParameters() {
 			if (Descriptor == null)
 				return;
 			var paramModule = Descriptor.GetModules<IParameterModule>().FirstOrDefault();

@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Nox.CCK.Avatars.Rigging {
 	public static class IKRigParameters {
-		public static bool SetupParameters(BaseRiggingModule module) {
+		public static bool SetupParameters(BaseRigging module) {
 			module.Parameters.Clear();
 
 			// Paramètres communs pour tous les bones
