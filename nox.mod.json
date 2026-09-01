@@ -6,7 +6,7 @@
     "avatars.modules"
   ],
   "name": "Avatar Modules",
-  "version": "1.0.0",
+  "version": "1.0.x",
   "description": "Modular avatar feature and component system for Nox.",
   "license": "GPL-3.0",
   "icon": null,
