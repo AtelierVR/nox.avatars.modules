@@ -15,8 +15,8 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 		private AvatarParameterModule _target;
 		private VisualElement         _root;
 		private Label                 _infoLabel;
-		private VisualElement         _parametersContainer;
-		private PropertyField         _parametersProperty;
+		private VisualElement         _container;
+		private PropertyField         _property;
 
 		private Dictionary<string, ParameterFieldTracker> _parameterFields = new();
 		private bool                                      _isPlaying;
@@ -34,16 +34,17 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			_target = (AvatarParameterModule)target;
 
 			// Charger le UXML
-			var visualTree = Resources.Load<VisualTreeAsset>("AvatarParameterModuleEditor");
-			_root          = visualTree.CloneTree();
+			_root = Resources
+				.Load<VisualTreeAsset>("AvatarParameterModuleEditor")
+				.CloneTree();
 
 			// Récupérer les éléments
-			_parametersProperty   = _root.Q<PropertyField>("parameters-property");
-			_infoLabel            = _root.Q<Label>("info-label");
-			_parametersContainer  = _root.Q<VisualElement>("parameters-container");
+			_property   = _root.Q<PropertyField>("parameters-property");
+			_infoLabel  = _root.Q<Label>("info-label");
+			_container  = _root.Q<VisualElement>("parameters-container");
 
 			// Bind la propriété
-			_parametersProperty.BindProperty(serializedObject.FindProperty("parameters"));
+			_property.BindProperty(serializedObject.FindProperty("parameters"));
 
 			// Mettre à jour l'affichage initial
 			UpdateRuntimeSection();
@@ -81,7 +82,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			if (!Application.isPlaying) {
 				_infoLabel.text  = "Entrez en mode Play pour voir et modifier les valeurs des paramètres.";
 				_infoLabel.style.display = DisplayStyle.Flex;
-				_parametersContainer.Clear();
+				_container.Clear();
 				_parameterFields.Clear();
 				return;
 			}
@@ -91,7 +92,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			if (runtimeParams.Length == 0) {
 				_infoLabel.text  = "Aucun paramètre trouvé dans l'animateur.";
 				_infoLabel.style.display = DisplayStyle.Flex;
-				_parametersContainer.Clear();
+				_container.Clear();
 				return;
 			}
 
@@ -99,7 +100,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			if (!animator) {
 				_infoLabel.text  = "Aucun animateur trouvé sur l'avatar.";
 				_infoLabel.style.display = DisplayStyle.Flex;
-				_parametersContainer.Clear();
+				_container.Clear();
 				return;
 			}
 
@@ -113,7 +114,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 				?? true;
 
 			// Créer les champs pour chaque paramètre
-			_parametersContainer.Clear();
+			_container.Clear();
 			_parameterFields.Clear();
 
 			foreach (var param in runtimeParams)
@@ -136,7 +137,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 					container.Add(readonlyLabel);
 				}
 
-				_parametersContainer.Add(container);
+				_container.Add(container);
 
 				// Tracker ce champ
 				var tracker = new ParameterFieldTracker {

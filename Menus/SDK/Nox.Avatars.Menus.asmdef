@@ -1,0 +1,17 @@
+{
+    "name": "Nox.Avatars.Menus",
+    "rootNamespace": "",
+    "references": [
+        "Nox.Avatars",
+        "Nox.UI"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

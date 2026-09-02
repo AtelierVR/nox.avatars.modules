@@ -2,6 +2,7 @@
 <linker>
 	<assembly fullname="Nox.Avatars.Camera" preserve="all" />
 	<assembly fullname="Nox.Avatars.Hand" preserve="all" />
+	<assembly fullname="Nox.Avatars.Menus" preserve="all" />
 	<assembly fullname="Nox.Avatars.Modules.Runtime" preserve="all" />
 	<assembly fullname="Nox.Avatars.Parameters" preserve="all" />
 	<assembly fullname="Nox.Avatars.Rigging" preserve="all" />
@@ -12,6 +13,7 @@
 	<assembly fullname="Nox.CCK.Avatars.Common" preserve="all" />
 	<assembly fullname="Nox.CCK.Avatars.EyeLooks" preserve="all" />
 	<assembly fullname="Nox.CCK.Avatars.Hand" preserve="all" />
+	<assembly fullname="Nox.CCK.Avatars.Menus" preserve="all" />
 	<assembly fullname="Nox.CCK.Avatars.Parameters" preserve="all" />
 	<assembly fullname="Nox.CCK.Avatars.Playable" preserve="all" />
 	<assembly fullname="Nox.CCK.Avatars.Proxies" preserve="all" />

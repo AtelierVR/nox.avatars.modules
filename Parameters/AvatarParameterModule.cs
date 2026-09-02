@@ -7,8 +7,6 @@ using Nox.Avatars;
 using Nox.Avatars.Parameters;
 using Nox.CCK.Avatars.Common;
 using UnityEngine;
-using UnityEngine.Animations;
-using UnityEngine.Playables;
 using Logger = Nox.CCK.Utils.Logger;
 
 namespace Nox.CCK.Avatars.Parameters {
@@ -33,7 +31,6 @@ namespace Nox.CCK.Avatars.Parameters {
 		public AvatarParameters parameters;
 		public IRuntimeAvatar   Runtime;
 
-		private readonly Dictionary<int, object>       _history   = new();
 		private readonly List<IParameter>              _paramList = new();
 		private readonly Dictionary<string, IParameter> _byName   = new();
 		private readonly Dictionary<int,    IParameter> _byHash   = new();

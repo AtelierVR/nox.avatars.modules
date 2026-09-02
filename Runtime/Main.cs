@@ -15,6 +15,7 @@ using Nox.CCK.Mods.Initializers;
 using Nox.Controllers;
 using UnityEngine;
 using Nox.Avatars.Rigging;
+using Nox.CCK.Avatars.Menus;
 
 namespace Nox.Avatars.Modules.Runtime {
 	public class Main : IMainModInitializer, IRiggingBackendRegistry {
@@ -49,6 +50,7 @@ namespace Nox.Avatars.Modules.Runtime {
 			valid &= VoiceAvatarModule.Check(descriptor);
 			valid &= ScaleAvatarModule.Check(descriptor);
 			valid &= HandAvatarModule.Check(descriptor);
+			valid &= AvatarMenuModule.Check(descriptor);
 
 			context.Callback(valid);
 		}
