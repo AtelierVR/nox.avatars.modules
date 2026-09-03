@@ -155,7 +155,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			_parametersList[index].type = newType;
 
 			if (oldType != newType) {
-				_parametersList[index].defaultValue = Array.Empty<byte>();
+				_parametersList[index].defaultValue = string.Empty;
 				_listView.RefreshItems();
 			}
 
@@ -188,7 +188,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			var newParameter = new ParameterEntry {
 				name         = "New Parameter",
 				type         = ParameterType.Bool,
-				defaultValue = Array.Empty<byte>(),
+				defaultValue = string.Empty,
 				synced       = true,
 				flags        = ParameterFlags.OwnerBroadcast
 			};

@@ -25,9 +25,6 @@ namespace Nox.CCK.Avatars.Modules.Editor
 		private static IReadOnlyList<ParameterType> AllowedTypes(EntryType type)
 			=> ParameterTypeCompatibility.GetCompatibleTypes(type);
 
-		private static ParameterType ParseType(string label)
-			=> Enum.TryParse<ParameterType>(label, out var t) ? t : ParameterType.Float;
-
 		private static ParameterType DefaultType(EntryType type)
 		{
 			var allowed = AllowedTypes(type);
@@ -69,7 +66,7 @@ namespace Nox.CCK.Avatars.Modules.Editor
 		}
 
 		private static byte[] GetBytes(SerializedProperty p, int slot)
-			=> Resolve(p)?.values is { } values && slot >= 0 && slot < values.Length ? values[slot] : null;
+			=> Converter.FromBase64(Resolve(p)?.values is { } values && slot >= 0 && slot < values.Length ? values[slot] : null);
 
 		private static void EnsureSlots(MenuEntry e, int count)
 		{
@@ -77,12 +74,12 @@ namespace Nox.CCK.Avatars.Modules.Editor
 				return;
 			if (e.values == null)
 			{
-				e.values = new byte[count][];
+				e.values = new string[count];
 				return;
 			}
 			if (e.values.Length < count)
 			{
-				var bigger = new byte[count][];
+				var bigger = new string[count];
 				Array.Copy(e.values, bigger, e.values.Length);
 				e.values = bigger;
 			}
@@ -95,7 +92,7 @@ namespace Nox.CCK.Avatars.Modules.Editor
 				return;
 			Record(p, "Edit entry value");
 			EnsureSlots(e, slot + 1);
-			e.values[slot] = bytes;
+			e.values[slot] = Converter.ToBase64(bytes);
 			p.serializedObject.Update();
 		}
 
@@ -217,7 +214,15 @@ namespace Nox.CCK.Avatars.Modules.Editor
 			dropdown.choices = new List<string>(Array.ConvertAll(allowed, t => ParameterTypeCompatibility.GetDisplayName(t)));
 			dropdown.index = Array.IndexOf(allowed, current);
 			dropdown.AddToClassList("menu-entry-type-dropdown");
-			dropdown.RegisterValueChangedCallback(evt => WriteParameterType(property, ParseType(evt.newValue)));
+			// Map the selected index back to the ParameterType instead of parsing the
+			// display label, because display names may differ from enum names (e.g.
+			// "Boolean" for ParameterType.Bool).
+			dropdown.RegisterValueChangedCallback(_ =>
+			{
+				var idx = dropdown.index;
+				if (idx >= 0 && idx < allowed.Length)
+					WriteParameterType(property, allowed[idx]);
+			});
 			row.Add(dropdown);
 
 			return row;
@@ -609,7 +614,7 @@ namespace Nox.CCK.Avatars.Modules.Editor
 			if (e.values == null || start < 0 || start >= e.values.Length)
 				return;
 			var remaining = Math.Max(0, e.values.Length - count);
-			var result = new byte[remaining][];
+			var result = new string[remaining];
 			int write = 0;
 			for (int i = 0; i < e.values.Length; i++)
 			{

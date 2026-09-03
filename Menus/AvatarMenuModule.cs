@@ -119,14 +119,15 @@ namespace Nox.CCK.Avatars.Menus {
 				=> _entry?.parameter ?? string.Empty;
 
 			public byte[] On
-				=> _entry?.values != null && _entry.values.Length > 0 && _entry.values[0] != null
-					? _entry.values[0]
-					: new byte[] { 1 };
+				=> SafeVal(0) ?? new byte[] { 1 };
 
 			public byte[] Off
-				=> _entry?.values != null && _entry.values.Length > 1 && _entry.values[1] != null
-					? _entry.values[1]
-					: new byte[] { 0 };
+				=> SafeVal(1) ?? new byte[] { 0 };
+
+			private byte[] SafeVal(int idx)
+				=> _entry?.values != null && idx < _entry.values.Length && !string.IsNullOrEmpty(_entry.values[idx])
+					? Converter.FromBase64(_entry.values[idx])
+					: null;
 		}
 
 		/// <summary>Adapte une entrée déclencheur en ITriggerEntry.</summary>
@@ -149,8 +150,11 @@ namespace Nox.CCK.Avatars.Menus {
 				=> _entry?.parameter ?? string.Empty;
 
 			public byte[] Value
-				=> _entry?.values != null && _entry.values.Length > 0 && _entry.values[0] != null
-					? _entry.values[0]
+				=> SafeVal(0);
+
+			private byte[] SafeVal(int idx)
+				=> _entry?.values != null && idx < _entry.values.Length && !string.IsNullOrEmpty(_entry.values[idx])
+					? Converter.FromBase64(_entry.values[idx])
 					: Array.Empty<byte>();
 		}
 
@@ -173,26 +177,14 @@ namespace Nox.CCK.Avatars.Menus {
 			public string Parameter
 				=> _entry?.parameter ?? string.Empty;
 
-			public byte[] Min
-				=> _entry?.values != null 
-					&& _entry.values.Length > 0 
-					&& _entry.values[0] != null 
-						? _entry.values[0] 
-						: Array.Empty<byte>();
+			public byte[] Min  => SafeVal(0);
+			public byte[] Max  => SafeVal(1);
+			public byte[] Step => SafeVal(2);
 
-			public byte[] Max
-				=> _entry?.values != null 
-					&& _entry.values.Length > 1 
-					&& _entry.values[1] != null 
-						? _entry.values[1] 
-						: Array.Empty<byte>();
-
-			public byte[] Step
-				=> _entry?.values != null 
-					&& _entry.values.Length > 2 
-					&& _entry.values[2] != null 
-						? _entry.values[2] 
-						: Array.Empty<byte>();
+			private byte[] SafeVal(int idx)
+				=> _entry?.values != null && idx < _entry.values.Length && !string.IsNullOrEmpty(_entry.values[idx])
+					? Converter.FromBase64(_entry.values[idx])
+					: Array.Empty<byte>();
 		}
 
 		/// <summary>Adapte une entrée axe 2D en IAxis2DEntry.</summary>
@@ -222,11 +214,9 @@ namespace Nox.CCK.Avatars.Menus {
 			public byte[] StepY => GetVal(5);
 
 			private byte[] GetVal(int idx)
-				=> _entry?.values != null 
-					&& _entry.values.Length > idx 
-					&& _entry.values[idx] != null 
-						? _entry.values[idx] 
-						: Array.Empty<byte>();
+				=> _entry?.values != null && idx < _entry.values.Length && !string.IsNullOrEmpty(_entry.values[idx])
+					? Converter.FromBase64(_entry.values[idx])
+					: Array.Empty<byte>();
 		}
 
 		/// <summary>Adapte une entrée liste de choix en IChoiceEntry.</summary>
@@ -256,9 +246,12 @@ namespace Nox.CCK.Avatars.Menus {
 					var count = _entry.values.Length / 2;
 					var list  = new IChoiceOption[count];
 					for (int i = 0; i < count; i++) {
-						var valBytes = _entry.values[i * 2];
-						var lblBytes = _entry.values[i * 2 + 1];
-						var optLabel = lblBytes != null ? System.Text.Encoding.UTF8.GetString(lblBytes) : string.Empty;
+					var valStr = _entry.values[i * 2];
+					var lblStr = _entry.values[i * 2 + 1];
+					var valBytes = Converter.FromBase64(valStr) 
+						?? Array.Empty<byte>();
+					var lblBytes = Converter.FromBase64(lblStr);
+					var optLabel = Converter.ToString(lblBytes);
 						list[i] = new ChoiceOption(valBytes, optLabel);
 					}
 					return list;
@@ -301,9 +294,10 @@ namespace Nox.CCK.Avatars.Menus {
 				=> GetString(0);
 
 			private string GetString(int idx) {
-				if (_entry?.values == null || _entry.values.Length <= idx || _entry.values[idx] == null)
+				if (_entry?.values == null || _entry.values.Length <= idx)
 					return string.Empty;
-				return System.Text.Encoding.UTF8.GetString(_entry.values[idx]);
+				var bytes = Converter.FromBase64(_entry.values[idx]);
+				return bytes != null ? Converter.ToString(bytes) : string.Empty;
 			}
 		}
 

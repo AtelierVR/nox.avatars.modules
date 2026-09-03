@@ -34,15 +34,12 @@ namespace Nox.CCK.Avatars.Modules.Editor
             if (type == ParameterType.ByteArray)
             {
                 var textField = new TextField(label) { multiline = true, style = { flexGrow = 1 } };
-                textField.SetValueWithoutNotify(currentValue is byte[] bytes
-                    ? (bytes != null ? Convert.ToBase64String(bytes) : string.Empty)
-                    : string.Empty);
+                textField.SetValueWithoutNotify(currentValue is byte[] bytes ? Converter.ToBase64(bytes) : string.Empty);
                 textField.RegisterValueChangedCallback(evt =>
                 {
-                    var bytes = string.IsNullOrEmpty(evt.newValue)
-                        ? Array.Empty<byte>()
-                        : Convert.FromBase64String(evt.newValue);
-                    onValueChanged(bytes);
+                    var decoded = Converter.FromBase64(evt.newValue);
+                    if (decoded != null)
+                        onValueChanged(decoded);
                 });
                 return textField;
             }
@@ -213,9 +210,7 @@ namespace Nox.CCK.Avatars.Modules.Editor
                     break;
 
                 case ParameterType.ByteArray when field is TextField byteArrayField:
-                    byteArrayField.SetValueWithoutNotify(value is byte[] bytes && bytes != null
-                        ? Convert.ToBase64String(bytes)
-                        : string.Empty);
+                    byteArrayField.SetValueWithoutNotify(value is byte[] bytes ? Converter.ToBase64(bytes) : string.Empty);
                     break;
             }
         }
@@ -230,7 +225,7 @@ namespace Nox.CCK.Avatars.Modules.Editor
         {
             var type = parameter.type;
             object currentValue = null;
-            if (parameter.defaultValue?.Length > 0)
+            if (!string.IsNullOrEmpty(parameter.defaultValue))
                 currentValue = type switch
                 {
                     ParameterType.Bool => parameter.GetDefaultValue<bool>(),
@@ -253,16 +248,13 @@ namespace Nox.CCK.Avatars.Modules.Editor
             if (type == ParameterType.ByteArray)
             {
                 var textField = new TextField(label) { multiline = true, style = { flexGrow = 1 } };
-                textField.SetValueWithoutNotify(currentValue is byte[] bytes
-                    ? (bytes != null ? Convert.ToBase64String(bytes) : string.Empty)
-                    : string.Empty);
+                textField.SetValueWithoutNotify(currentValue is byte[] bytes ? Converter.ToBase64(bytes) : string.Empty);
                 textField.userData = index;
                 textField.RegisterValueChangedCallback(evt =>
                 {
-                    var bytes = string.IsNullOrEmpty(evt.newValue)
-                        ? Array.Empty<byte>()
-                        : Convert.FromBase64String(evt.newValue);
-                    onValueChanged(parameter, bytes);
+                    var decoded = Converter.FromBase64(evt.newValue);
+                    if (decoded != null)
+                        onValueChanged(parameter, decoded);
                 });
                 return textField;
             }
@@ -359,7 +351,7 @@ namespace Nox.CCK.Avatars.Modules.Editor
         public static void UpdateFieldValue(VisualElement field, ParameterEntry parameter)
         {
             var type = parameter.type;
-            var value = parameter.defaultValue?.Length > 0
+            var value = !string.IsNullOrEmpty(parameter.defaultValue)
                 ? parameter.GetDefaultValue<object>()
                 : null;
             UpdateFieldValue(field, type, value);
@@ -473,9 +465,7 @@ namespace Nox.CCK.Avatars.Modules.Editor
         private static VisualElement CreateByteArrayField(string label, object currentValue, bool editable)
         {
             var field = new TextField(label) { multiline = true, style = { flexGrow = 1 } };
-            field.SetValueWithoutNotify(currentValue is byte[] bytes && bytes != null
-                ? Convert.ToBase64String(bytes)
-                : string.Empty);
+            field.SetValueWithoutNotify(currentValue is byte[] bytes ? Converter.ToBase64(bytes) : string.Empty);
             if (!editable)
                 field.SetEnabled(false);
             return field;

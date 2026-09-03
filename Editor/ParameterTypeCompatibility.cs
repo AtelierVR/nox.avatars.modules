@@ -41,6 +41,9 @@ namespace Nox.CCK.Avatars.Modules.Editor
                 displayNamesMap[value] = inspectorAttr != null ? inspectorAttr.displayName : value.ToString();
             }
 
+            // Sort by enum value so the order is deterministic and follows the
+            // declaration order (Bool = 0 first), independent of reflection order.
+            types.Sort((a, b) => a.CompareTo(b));
             _allTypes = types.AsReadOnly();
             _categories = categoriesMap;
             _displayNames = displayNamesMap;

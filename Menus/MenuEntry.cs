@@ -38,9 +38,10 @@ namespace Nox.CCK.Avatars.Menus {
 
         /// <summary>
         /// Values associated with the entry, if any.
-        /// Is saved as a byte array to support various data types (e.g., int, float, string).
+        /// Each value is stored as a base64-encoded string to support various data
+        /// types (e.g., int, float, string) while remaining Unity-serializable.
         /// </summary>
-        public byte[][] values;
+        public string[] values;
 
         /// <summary>
         /// Submenu Used when the entry is a submenu (type = Menu).
