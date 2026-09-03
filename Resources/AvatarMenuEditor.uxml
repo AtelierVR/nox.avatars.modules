@@ -1,0 +1,7 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <Style src="project://database/Packages/nox.avatars.modules/Resources/AvatarMenuEditor.uss"/>
+    <ui:VisualElement name="root" class="avatar-menu-editor">
+        <ui:Label text="Avatar Menu" class="header-label"/>
+        <uie:PropertyField name="entries-property" binding-path="entries" label="Entries"/>
+    </ui:VisualElement>
+</ui:UXML>

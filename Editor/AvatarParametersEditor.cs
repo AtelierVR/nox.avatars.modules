@@ -19,6 +19,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 
 		public override VisualElement CreateInspectorGUI() {
 			var root = new VisualElement();
+			root.styleSheets.Add(Resources.Load<StyleSheet>("AvatarParametersEditor"));
 
 			// Initialize parameters list
 			_parametersList = new List<ParameterEntry>();
@@ -176,92 +177,10 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			SaveChangesInternal();
 		}
 
-		private void OnIntegerValueChanged(ChangeEvent<long> evt) {
-			if (evt.target is not VisualElement { userData: int index } || index >= _parametersList.Count) return;
-			var parameter = _parametersList[index];
-
-			try {
-				switch (parameter.type) {
-					case ParameterType.Byte:
-						parameter.SetDefaultValue((byte)Math.Clamp(evt.newValue, byte.MinValue, byte.MaxValue));
-						break;
-					case ParameterType.Short:
-						parameter.SetDefaultValue((short)Math.Clamp(evt.newValue, short.MinValue, short.MaxValue));
-						break;
-					case ParameterType.UShort:
-						parameter.SetDefaultValue((ushort)Math.Clamp(evt.newValue, ushort.MinValue, ushort.MaxValue));
-						break;
-					case ParameterType.Int:
-						parameter.SetDefaultValue((int)Math.Clamp(evt.newValue, int.MinValue, int.MaxValue));
-						break;
-					case ParameterType.UInt:
-						parameter.SetDefaultValue((uint)Math.Clamp(evt.newValue, uint.MinValue, uint.MaxValue));
-						break;
-					case ParameterType.Long:
-						parameter.SetDefaultValue(evt.newValue);
-						break;
-					case ParameterType.ULong:
-						parameter.SetDefaultValue((ulong)Math.Max(0, evt.newValue));
-						break;
-				}
-
-				SaveChangesInternal();
-			} catch (Exception ex) {
-				Debug.LogWarning($"Failed to set integer value {evt.newValue} for type {parameter.type}: {ex.Message}");
-			}
-		}
-
-		private void OnFloatValueChanged(ChangeEvent<double> evt) {
-			if (evt.target is not VisualElement { userData: int index } || index >= _parametersList.Count) return;
-			var parameter = _parametersList[index];
-
-			try {
-				switch (parameter.type) {
-					case ParameterType.Float:
-						parameter.SetDefaultValue((float)evt.newValue);
-						break;
-					case ParameterType.Double:
-						parameter.SetDefaultValue(evt.newValue);
-						break;
-					default:
-						throw new ArgumentOutOfRangeException();
-				}
-
-				SaveChangesInternal();
-			} catch (Exception ex) {
-				Debug.LogWarning($"Failed to set float value {evt.newValue} for type {parameter.type}: {ex.Message}");
-			}
-		}
-
 		private void OnStringValueChanged(ChangeEvent<string> evt) {
 			if (evt.target is not VisualElement { userData: int index } || index >= _parametersList.Count) return;
 			_parametersList[index].SetDefaultValue(evt.newValue ?? "");
 			SaveChangesInternal();
-		}
-
-		private void OnVector3ValueChanged(ChangeEvent<Vector3> evt) {
-			if (evt.target is not VisualElement { userData: int index } || index >= _parametersList.Count) return;
-			_parametersList[index].SetDefaultValue(evt.newValue);
-			SaveChangesInternal();
-		}
-
-		private void OnQuaternionValueChanged(ChangeEvent<Vector3> evt) {
-			if (evt.target is not VisualElement { userData: int index } || index >= _parametersList.Count) return;
-			var quat = Quaternion.Euler(evt.newValue);
-			_parametersList[index].SetDefaultValue(quat);
-			SaveChangesInternal();
-		}
-
-		private void OnByteArrayValueChanged(ChangeEvent<string> evt) {
-			if (evt.target is not VisualElement element || element.userData is not int index || index >= _parametersList.Count) return;
-
-			try {
-				var bytes = string.IsNullOrEmpty(evt.newValue) ? Array.Empty<byte>() : Convert.FromBase64String(evt.newValue);
-				_parametersList[index].SetDefaultValue(bytes);
-				SaveChangesInternal();
-			} catch (Exception ex) {
-				Debug.LogWarning($"Failed to parse Base64 string: {ex.Message}");
-			}
 		}
 
 		// Callbacks pour ajouter et supprimer des paramètres
@@ -311,182 +230,30 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			var parameter = _parametersList[index];
 			element.Clear();
 
-			var control = parameter.type switch {
-				ParameterType.Bool                                                                                                                                        => CreateBoolControl(parameter, index),
-				ParameterType.Byte or ParameterType.Short or ParameterType.UShort or ParameterType.Int or ParameterType.UInt or ParameterType.Long or ParameterType.ULong => CreateIntegerControl(parameter, index),
-				ParameterType.Float or ParameterType.Double                                                                                                               => CreateFloatControl(parameter, index),
-				ParameterType.String                                                                                                                                      => CreateStringControl(parameter, index),
-				ParameterType.Vector3                                                                                                                                     => CreateVector3Control(parameter, index),
-				ParameterType.Quaternion                                                                                                                                  => CreateQuaternionControl(parameter, index),
-				ParameterType.ByteArray                                                                                                                                   => CreateByteArrayControl(parameter, index),
-				_                                                                                                                                                         => CreateStringControl(parameter, index) // Fallback vers string
-			};
+			var control = ParameterFieldFactory.CreateFieldForParameterEntry(parameter, index, (Nox.CCK.Avatars.Parameters.ParameterEntry p, object val) => {
+				p.SetDefaultValue(val);
+				SaveChangesInternal();
+			});
+
+			var label = control.Q<VisualElement>(null, "unity-base-field__label");
+			if (label != null) 
+				label.style.display = DisplayStyle.None;
+			var field = control.Q<VisualElement>(null, "unity-base-field");
+			if (field != null) 
+				field.style.flexGrow = 1;
 
 			element.Add(control);
 		}
 
-		private VisualElement CreateBoolControl(ParameterEntry parameter, int index) {
-			var toggle = new Toggle {
-				style = { flexGrow = 1 }
-			};
-
+		private void OnValueChanged(ChangeEvent<object> evt) {
+			if (evt.target is not VisualElement { userData: int index } || index >= _parametersList.Count) return;
+			var parameter = _parametersList[index];
 			try {
-				toggle.value = parameter.defaultValue?.Length > 0
-					&& parameter.GetDefaultValue<bool>();
-			} catch {
-				toggle.value = false;
+				parameter.SetDefaultValue(evt.newValue);
+				SaveChangesInternal();
+			} catch (Exception ex) {
+				Debug.LogWarning($"Failed to set value {evt.newValue} for type {parameter.type}: {ex.Message}");
 			}
-
-			toggle.userData = index;
-			toggle.RegisterValueChangedCallback(OnBoolValueChanged);
-			return toggle;
-		}
-
-		private VisualElement CreateIntegerControl(ParameterEntry parameter, int index) {
-			var field = new LongField {
-				style = { flexGrow = 1 }
-			};
-			try {
-				var value = parameter.type switch {
-					ParameterType.Byte   => parameter.defaultValue?.Length > 0 ? parameter.GetDefaultValue<byte>() : 0,
-					ParameterType.Short  => parameter.defaultValue?.Length > 0 ? parameter.GetDefaultValue<short>() : 0,
-					ParameterType.UShort => parameter.defaultValue?.Length > 0 ? parameter.GetDefaultValue<ushort>() : 0,
-					ParameterType.Int    => parameter.defaultValue?.Length > 0 ? parameter.GetDefaultValue<int>() : 0,
-					ParameterType.UInt   => parameter.defaultValue?.Length > 0 ? parameter.GetDefaultValue<uint>() : 0,
-					ParameterType.Long   => parameter.defaultValue?.Length > 0 ? parameter.GetDefaultValue<long>() : 0,
-					ParameterType.ULong  => parameter.defaultValue?.Length > 0 ? (long)parameter.GetDefaultValue<ulong>() : 0,
-					_                    => 0
-				};
-				field.value = value;
-			} catch {
-				field.value = 0;
-			}
-
-			field.userData = index;
-			field.RegisterValueChangedCallback(OnIntegerValueChanged);
-			return field;
-		}
-
-		private VisualElement CreateFloatControl(ParameterEntry parameter, int index) {
-			VisualElement field;
-			
-			if (parameter.type == ParameterType.Float) {
-				var floatField = new FloatField {
-					style = { flexGrow = 1 }
-				};
-				
-				try {
-					floatField.value = parameter.defaultValue?.Length > 0 
-						? parameter.GetDefaultValue<float>() 
-						: 0.0f;
-				} catch {
-					floatField.value = 0.0f;
-				}
-				
-				floatField.userData = index;
-				floatField.RegisterValueChangedCallback(evt => {
-					if (evt.target is not FloatField { userData: int idx } || idx >= _parametersList.Count) return;
-					_parametersList[idx].SetDefaultValue(evt.newValue);
-					SaveChangesInternal();
-				});
-				field = floatField;
-			} else {
-				var doubleField = new DoubleField {
-					style = { flexGrow = 1 }
-				};
-				
-				try {
-					doubleField.value = parameter.defaultValue?.Length > 0 
-						? parameter.GetDefaultValue<double>() 
-						: 0.0;
-				} catch {
-					doubleField.value = 0.0;
-				}
-				
-				doubleField.userData = index;
-				doubleField.RegisterValueChangedCallback(evt => {
-					if (evt.target is not DoubleField { userData: int idx } || idx >= _parametersList.Count) return;
-					_parametersList[idx].SetDefaultValue(evt.newValue);
-					SaveChangesInternal();
-				});
-				field = doubleField;
-			}
-
-			return field;
-		}
-
-		private VisualElement CreateStringControl(ParameterEntry parameter, int index) {
-			var field = new TextField {
-				style = { flexGrow = 1 }
-			};
-
-			try {
-				field.value = parameter.defaultValue?.Length > 0
-					? parameter.GetDefaultValue<string>()
-					: "";
-			} catch {
-				field.value = "";
-			}
-
-			field.userData = index;
-			field.RegisterValueChangedCallback(OnStringValueChanged);
-			return field;
-		}
-
-		private VisualElement CreateVector3Control(ParameterEntry parameter, int index) {
-			var field = new Vector3Field {
-				style = { flexGrow = 1 }
-			};
-
-			try {
-				field.value = parameter.defaultValue?.Length > 0
-					? parameter.GetDefaultValue<Vector3>()
-					: Vector3.zero;
-			} catch {
-				field.value = Vector3.zero;
-			}
-
-			field.userData = index;
-			field.RegisterValueChangedCallback(OnVector3ValueChanged);
-			return field;
-		}
-
-		private VisualElement CreateQuaternionControl(ParameterEntry parameter, int index) {
-			var field = new Vector3Field {
-				style = { flexGrow = 1 },
-			};
-
-			try {
-				var quat = parameter.defaultValue?.Length > 0
-					? parameter.GetDefaultValue<Quaternion>()
-					: Quaternion.identity;
-				field.value = quat.eulerAngles;
-			} catch {
-				field.value = Vector3.zero;
-			}
-
-			field.userData = index;
-			field.RegisterValueChangedCallback(OnQuaternionValueChanged);
-			return field;
-		}
-
-		private VisualElement CreateByteArrayControl(ParameterEntry parameter, int index) {
-			var field = new TextField {
-				multiline = true,
-				style     = { flexGrow = 1 }
-			};
-
-			try {
-				field.value = parameter.defaultValue?.Length > 0
-					? Convert.ToBase64String(parameter.defaultValue)
-					: "";
-			} catch {
-				field.value = "";
-			}
-
-			field.userData = index;
-			field.RegisterValueChangedCallback(OnByteArrayValueChanged);
-			return field;
 		}
 	}
 }

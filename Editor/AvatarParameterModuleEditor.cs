@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Nox.CCK.Avatars.Parameters;
 using Nox.Avatars.Parameters;
-using Nox.CCK.Network;
+using Nox.CCK.Avatars.Parameters;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Quaternion = UnityEngine.Quaternion;
+using Vector3 = UnityEngine.Vector3;
 
 namespace Nox.CCK.Avatars.Modules.Editor {
 	[CustomEditor(typeof(AvatarParameterModule))]
@@ -109,8 +110,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 
 			var isLocal = runtimeParams
 					.FirstOrDefault(e => e.GetName().Contains("IsLocal"))
-					?.Get()
-					.ToBool()
+					?.Get().ToBool()
 				?? true;
 
 			// Créer les champs pour chaque paramètre
@@ -144,7 +144,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 					Container = container,
 					Field     = field,
 					Parameter = param,
-					LastValue = GetParameterValue(param),
+					LastValue = param.Get(),
 					IsFocused = false
 				};
 
@@ -165,130 +165,16 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 
 		private VisualElement CreateFieldForParameter(IParameter param, bool editable) {
 			var paramName = param.GetName();
+			var type = param.GetValueType();
+			var value = param.Get();
 
-			switch (param.GetValueType()) {
-				case ParameterType.Bool:
-					var toggleField = new Toggle(paramName);
-					toggleField.SetEnabled(editable);
-					toggleField.value = param.Get().ToBool();
-					if (editable)
-						toggleField.RegisterValueChangedCallback(evt => param.Set(evt.newValue));
-					return toggleField;
-
-				case ParameterType.Int:
-					var intField = new IntegerField(paramName);
-					intField.SetEnabled(editable);
-					intField.value = param.Get().ToInt();
-					if (editable)
-						intField.RegisterValueChangedCallback(evt => param.Set(evt.newValue));
-					return intField;
-
-				case ParameterType.UInt:
-					var uintField = new IntegerField(paramName);
-					uintField.SetEnabled(editable);
-					uintField.value = param.Get().ToUInt().ToInt();
-					if (editable)
-						uintField.RegisterValueChangedCallback(evt => param.Set((uint)evt.newValue));
-					return uintField;
-
-				case ParameterType.Long:
-					var longField = new LongField(paramName);
-					longField.SetEnabled(editable);
-					longField.value = param.Get().ToLong();
-					if (editable)
-						longField.RegisterValueChangedCallback(evt => param.Set(evt.newValue));
-					return longField;
-
-				case ParameterType.ULong:
-					var ulongField = new LongField(paramName);
-					ulongField.SetEnabled(editable);
-					ulongField.value = param.Get().ToULong().ToLong();
-					if (editable)
-						ulongField.RegisterValueChangedCallback(evt => param.Set((ulong)evt.newValue));
-					return ulongField;
-
-				case ParameterType.Byte:
-					var byteField = new IntegerField(paramName);
-					byteField.SetEnabled(editable);
-					byteField.value = param.Get().ToByte();
-					if (editable)
-						byteField.RegisterValueChangedCallback(evt => param.Set((byte)evt.newValue));
-					return byteField;
-
-				case ParameterType.Short:
-					var shortField = new IntegerField(paramName);
-					shortField.SetEnabled(editable);
-					shortField.value = param.Get().ToShort();
-					if (editable)
-						shortField.RegisterValueChangedCallback(evt => param.Set((short)evt.newValue));
-					return shortField;
-
-				case ParameterType.UShort:
-					var ushortField = new IntegerField(paramName);
-					ushortField.SetEnabled(editable);
-					ushortField.value = param.Get().ToUShort();
-					if (editable)
-						ushortField.RegisterValueChangedCallback(evt => param.Set((ushort)evt.newValue));
-					return ushortField;
-
-				case ParameterType.Float:
-					var floatField = new FloatField(paramName);
-					floatField.SetEnabled(editable);
-					floatField.value = param.Get().ToFloat();
-					if (editable)
-						floatField.RegisterValueChangedCallback(evt => param.Set(evt.newValue));
-					return floatField;
-
-				case ParameterType.Double:
-					var doubleField = new DoubleField(paramName);
-					doubleField.SetEnabled(editable);
-					doubleField.value = param.Get().ToDouble();
-					if (editable)
-						doubleField.RegisterValueChangedCallback(evt => param.Set(evt.newValue));
-					return doubleField;
-
-				case ParameterType.String:
-					var textField = new TextField(paramName);
-					textField.SetEnabled(editable);
-					textField.value = param.Get().ToString();
-					if (editable)
-						textField.RegisterValueChangedCallback(evt => param.Set(evt.newValue));
-					return textField;
-
-				case ParameterType.Vector3:
-					var vector3Field = new Vector3Field(paramName);
-					vector3Field.SetEnabled(editable);
-					vector3Field.value = param.Get().ToVector3();
-					if (editable)
-						vector3Field.RegisterValueChangedCallback(evt => param.Set(evt.newValue));
-					return vector3Field;
-
-				case ParameterType.Quaternion:
-					var quatField = new Vector3Field(paramName + " (Euler)");
-					quatField.SetEnabled(editable);
-					quatField.value = param.Get().ToQuaternion().eulerAngles;
-					if (editable)
-						quatField.RegisterValueChangedCallback(evt => param.Set(Quaternion.Euler(evt.newValue)));
-					return quatField;
-
-				case ParameterType.ByteArray:
-					var byteArrayField = new TextField(paramName);
-					byteArrayField.SetEnabled(editable);
-					var byteArray = (byte[])param.Get();
-					byteArrayField.value = byteArray != null ? System.Text.Encoding.UTF8.GetString(byteArray) : string.Empty;
-					if (editable) {
-						byteArrayField.RegisterValueChangedCallback(evt => {
-							param.Set(!string.IsNullOrEmpty(evt.newValue)
-								? System.Text.Encoding.UTF8.GetBytes(evt.newValue)
-								: Array.Empty<byte>());
-						});
-					}
-					return byteArrayField;
-
-				default:
-					var label = new Label($"{paramName}: Type {param.GetValueType()} non supporté");
-					return label;
+			if (type == ParameterType.ByteArray) {
+				return ParameterFieldFactory.CreateField(paramName, type, editable, value, bytes => param.Set(bytes));
 			}
+
+			var field = ParameterFieldFactory.CreateFieldByType(type, paramName, value, editable);
+			ParameterFieldFactory.RegisterCallback(field, type, bytes => param.Set(bytes));
+			return field;
 		}
 
 		private void UpdateParameterValues() {
@@ -302,33 +188,13 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 				if (tracker.IsFocused)
 					continue;
 
-				var currentValue = GetParameterValue(tracker.Parameter);
+				var currentValue = tracker.Parameter.Get();
 
 				// Mettre à jour uniquement si la valeur a changé
 				if (!ValuesAreEqual(tracker.LastValue, currentValue)) {
-					UpdateFieldValue(tracker.Field, tracker.Parameter);
+					ParameterFieldFactory.UpdateFieldValue(tracker.Field, tracker.Parameter.GetValueType(), currentValue);
 					tracker.LastValue = currentValue;
 				}
-			}
-		}
-
-		private object GetParameterValue(IParameter param) {
-			switch (param.GetValueType()) {
-				case ParameterType.Bool:       return param.Get().ToBool();
-				case ParameterType.Int:        return param.Get().ToInt();
-				case ParameterType.UInt:       return param.Get().ToUInt();
-				case ParameterType.Long:       return param.Get().ToLong();
-				case ParameterType.ULong:      return param.Get().ToULong();
-				case ParameterType.Byte:       return param.Get().ToByte();
-				case ParameterType.Short:      return param.Get().ToShort();
-				case ParameterType.UShort:     return param.Get().ToUShort();
-				case ParameterType.Float:      return param.Get().ToFloat();
-				case ParameterType.Double:     return param.Get().ToDouble();
-				case ParameterType.String:     return param.Get().ToString();
-				case ParameterType.Vector3:    return param.Get().ToVector3();
-				case ParameterType.Quaternion: return param.Get().ToQuaternion();
-				case ParameterType.ByteArray:  return param.Get();
-				default:                       return null;
 			}
 		}
 
@@ -349,55 +215,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 				return true;
 			}
 
-			return val1.Equals(val2);
-		}
-
-		private void UpdateFieldValue(VisualElement field, IParameter param) {
-			switch (param.GetValueType()) {
-				case ParameterType.Bool:
-					((Toggle)field).SetValueWithoutNotify(param.Get().ToBool());
-					break;
-				case ParameterType.Int:
-					((IntegerField)field).SetValueWithoutNotify(param.Get().ToInt());
-					break;
-				case ParameterType.UInt:
-					((IntegerField)field).SetValueWithoutNotify(param.Get().ToUInt().ToInt());
-					break;
-				case ParameterType.Long:
-					((LongField)field).SetValueWithoutNotify(param.Get().ToLong());
-					break;
-				case ParameterType.ULong:
-					((LongField)field).SetValueWithoutNotify(param.Get().ToULong().ToLong());
-					break;
-				case ParameterType.Byte:
-					((IntegerField)field).SetValueWithoutNotify(param.Get().ToByte());
-					break;
-				case ParameterType.Short:
-					((IntegerField)field).SetValueWithoutNotify(param.Get().ToShort());
-					break;
-				case ParameterType.UShort:
-					((IntegerField)field).SetValueWithoutNotify(param.Get().ToUShort());
-					break;
-				case ParameterType.Float:
-					((FloatField)field).SetValueWithoutNotify(param.Get().ToFloat());
-					break;
-				case ParameterType.Double:
-					((DoubleField)field).SetValueWithoutNotify(param.Get().ToDouble());
-					break;
-				case ParameterType.String:
-					((TextField)field).SetValueWithoutNotify(param.Get().ToString());
-					break;
-				case ParameterType.Vector3:
-					((Vector3Field)field).SetValueWithoutNotify(param.Get().ToVector3());
-					break;
-				case ParameterType.Quaternion:
-					((Vector3Field)field).SetValueWithoutNotify(param.Get().ToQuaternion().eulerAngles);
-					break;
-				case ParameterType.ByteArray:
-					var byteArray = (byte[])param.Get();
-					((TextField)field).SetValueWithoutNotify(byteArray != null ? System.Text.Encoding.UTF8.GetString(byteArray) : string.Empty);
-					break;
-			}
+			return Equals(val1, val2);
 		}
 	}
 }

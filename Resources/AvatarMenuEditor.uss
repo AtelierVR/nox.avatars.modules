@@ -1,0 +1,11 @@
+.avatar-menu-editor {
+    flex-grow: 1;
+    padding: 6px;
+}
+
+.avatar-menu-editor .header-label {
+    font-size: 14px;
+    -unity-font-style: bold;
+    margin-bottom: 8px;
+    color: var(--unity-colors-default-text);
+}

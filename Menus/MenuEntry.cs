@@ -1,31 +1,50 @@
 using System;
-using Nox.UI;
+using Nox.Avatars.Parameters;
 using UnityEngine;
 
 namespace Nox.CCK.Avatars.Menus {
 	/// <summary>
-	/// Entrée d'un menu d'avatar : correspond à un élément du menu radial.
-	/// <list type="bullet">
-	/// <item><see cref="RadialElementType.Menu"/> → sous-menu (via <see cref="submenu"/>) ;</item>
-	/// <item><see cref="RadialElementType.Choice"/> ou Slider → contrôle d'un paramètre (via <see cref="parameter"/>) ;</item>
-	/// <item>autre type (Button…) → action simple.</item>
-	/// </list>
+	/// Represents an entry in the avatar menu. 
+    /// An entry can be a trigger, a parameter, or a submenu.
 	/// </summary>
 	[Serializable]
 	public class MenuEntry {
-		/// <summary>Libellé de l'élément.</summary>
+        /// <summary>
+        /// Display label of the entry.
+        /// </summary>
 		public string label;
 
-		/// <summary>Icône de l'élément (peut être null).</summary>
+        /// <summary>
+        /// Icon of the entry, can be null.
+        /// </summary>
 		public Sprite icon;
 
-		/// <summary>Type radial de l'élément.</summary>
-		public RadialElementType type = RadialElementType.Button;
+        /// <summary>
+        /// Type of the entry, determines its behavior when clicked (or manipulated).
+        /// </summary>
+		public EntryType type = EntryType.Trigger;
 
-		/// <summary>Nom du paramètre de l'avatar lié au contrôle (Choice/Slider).</summary>
+        /// <summary>
+        /// Name of the parameter associated with the entry, if any.
+        /// </summary>
 		public string parameter;
 
-		/// <summary>Sous-menu cible (type Menu) : un autre asset AvatarMenu.</summary>
-		public AvatarMenu submenu;
+        /// <summary>
+        /// Type of the associated parameter. Used by the editor to read/write
+        /// <see cref="values"/> with the right encoding, and by the runtime
+        /// to interpret the values.
+        /// </summary>
+        public ParameterType parameterType = ParameterType.Float;
+
+        /// <summary>
+        /// Values associated with the entry, if any.
+        /// Is saved as a byte array to support various data types (e.g., int, float, string).
+        /// </summary>
+        public byte[][] values;
+
+        /// <summary>
+        /// Submenu Used when the entry is a submenu (type = Menu).
+        /// </summary>
+		public AvatarMenu menu;
 	}
 }

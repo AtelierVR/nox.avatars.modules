@@ -1,0 +1,63 @@
+.menu-entry-header {
+    flex-direction: column;
+}
+
+.field-label {
+    flex-grow: 1;
+    margin-bottom: 2px;
+}
+
+.field-type {
+    flex-grow: 1;
+    margin-bottom: 4px;
+}
+
+.type-container {
+    flex-grow: 1;
+}
+
+.values-row {
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.values-row > * {
+    flex-grow: 1;
+    margin-right: 2px;
+}
+
+.section-label {
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: var(--unity-colors-label-text);
+    margin-top: 4px;
+    margin-bottom: 2px;
+}
+
+/* Rangée Paramètre [input | type] */
+.menu-entry-parameter-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.menu-entry-parameter-row .unity-base-field__label {
+    min-width: 70px;
+}
+
+.menu-entry-parameter-input {
+    flex-grow: 1;
+    margin-right: 4px;
+}
+
+.menu-entry-parameter-input .unity-base-field__input {
+    flex-grow: 1;
+}
+
+.menu-entry-type-dropdown {
+    min-width: 90px;
+    margin-left: 4px;
+}
+
+.menu-entry-type-dropdown > .unity-base-field__label {
+    display: none;
+}

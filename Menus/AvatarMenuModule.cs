@@ -30,7 +30,9 @@ namespace Nox.CCK.Avatars.Menus {
 		}
 
 		IMenuEntry IMenuModule.Menu
-			=> menu != null ? new MenuAdapter(menu) : null;
+			=> menu != null 
+				? new MenuAdapter(menu) 
+				: null;
 
 		public static bool Check(IAvatarDescriptor descriptor) {
 			var modules = descriptor.GetModules<AvatarMenuModule>();
@@ -53,9 +55,8 @@ namespace Nox.CCK.Avatars.Menus {
 		private sealed class MenuAdapter : IMenuEntry {
 			private readonly AvatarMenu _menu;
 
-			public MenuAdapter(AvatarMenu menu) {
-				_menu = menu;
-			}
+			public MenuAdapter(AvatarMenu menu)
+				=> _menu = menu;
 
 			public int Id
 				=> _menu ? _menu.name.GetHashCode() : 0;
@@ -78,26 +79,32 @@ namespace Nox.CCK.Avatars.Menus {
 			}
 
 			private static IEntry Convert(MenuEntry entry) {
+				if (entry == null)
+					return null;
+
 				// Sous-menu → sous-menu AvatarMenu (IMenuEntry).
-				if (entry.submenu != null)
-					return new MenuAdapter(entry.submenu);
+				if (entry.type == EntryType.Menu || entry.menu != null)
+					return new MenuAdapter(entry.menu);
 
-				// Paramètre → toggle (IToggleEntry).
-				if (!string.IsNullOrEmpty(entry.parameter))
-					return new ToggleAdapter(entry);
-
-				// Entrée simple.
-				return new LeafAdapter(entry);
+				return entry.type switch {
+					EntryType.Toggle      => new ToggleAdapter(entry),
+					EntryType.Trigger     => new TriggerAdapter(entry),
+					EntryType.Axis1D      => new Axis1DAdapter(entry),
+					EntryType.Axis2D      => new Axis2DAdapter(entry),
+					EntryType.Choice      => new ChoiceAdapter(entry),
+					EntryType.Text        => new TextAdapter(entry),
+					EntryType.ColorPicker => new ColorPickerAdapter(entry),
+					_                     => new LeafAdapter(entry)
+				};
 			}
 		}
 
-		/// <summary>Adapte une entrée paramètre en IToggleEntry (On/Off par défaut 1/0).</summary>
+		/// <summary>Adapte une entrée paramètre en IToggleEntry (On/Off depuis values ou 1/0 par défaut).</summary>
 		private sealed class ToggleAdapter : IToggleEntry {
 			private readonly MenuEntry _entry;
 
-			public ToggleAdapter(MenuEntry entry) {
-				_entry = entry;
-			}
+			public ToggleAdapter(MenuEntry entry) 
+				=> _entry = entry;
 
 			public int Id
 				=> _entry != null ? _entry.label.GetHashCode() : 0;
@@ -112,22 +119,227 @@ namespace Nox.CCK.Avatars.Menus {
 				=> _entry?.parameter ?? string.Empty;
 
 			public byte[] On
-				=> new byte[] { 1 };
+				=> _entry?.values != null && _entry.values.Length > 0 && _entry.values[0] != null
+					? _entry.values[0]
+					: new byte[] { 1 };
 
 			public byte[] Off
-				=> new byte[] { 0 };
+				=> _entry?.values != null && _entry.values.Length > 1 && _entry.values[1] != null
+					? _entry.values[1]
+					: new byte[] { 0 };
+		}
+
+		/// <summary>Adapte une entrée déclencheur en ITriggerEntry.</summary>
+		private sealed class TriggerAdapter : ITriggerEntry {
+			private readonly MenuEntry _entry;
+
+			public TriggerAdapter(MenuEntry entry)
+				=> _entry = entry;
+
+			public int Id
+				=> _entry != null ? _entry.label.GetHashCode() : 0;
+
+			public string Label
+				=> _entry?.label ?? string.Empty;
+
+			public Sprite Icon
+				=> _entry?.icon;
+
+			public string Parameter
+				=> _entry?.parameter ?? string.Empty;
+
+			public byte[] Value
+				=> _entry?.values != null && _entry.values.Length > 0 && _entry.values[0] != null
+					? _entry.values[0]
+					: Array.Empty<byte>();
+		}
+
+		/// <summary>Adapte une entrée axe 1D (slider) en IAxis1DEntry.</summary>
+		private sealed class Axis1DAdapter : IAxis1DEntry {
+			private readonly MenuEntry _entry;
+
+			public Axis1DAdapter(MenuEntry entry)
+				=> _entry = entry;
+
+			public int Id
+				=> _entry != null ? _entry.label.GetHashCode() : 0;
+
+			public string Label
+				=> _entry?.label ?? string.Empty;
+
+			public Sprite Icon
+				=> _entry?.icon;
+
+			public string Parameter
+				=> _entry?.parameter ?? string.Empty;
+
+			public byte[] Min
+				=> _entry?.values != null 
+					&& _entry.values.Length > 0 
+					&& _entry.values[0] != null 
+						? _entry.values[0] 
+						: Array.Empty<byte>();
+
+			public byte[] Max
+				=> _entry?.values != null 
+					&& _entry.values.Length > 1 
+					&& _entry.values[1] != null 
+						? _entry.values[1] 
+						: Array.Empty<byte>();
+
+			public byte[] Step
+				=> _entry?.values != null 
+					&& _entry.values.Length > 2 
+					&& _entry.values[2] != null 
+						? _entry.values[2] 
+						: Array.Empty<byte>();
+		}
+
+		/// <summary>Adapte une entrée axe 2D en IAxis2DEntry.</summary>
+		private sealed class Axis2DAdapter : IAxis2DEntry {
+			private readonly MenuEntry _entry;
+
+			public Axis2DAdapter(MenuEntry entry)
+				=> _entry = entry;
+
+			public int Id
+				=> _entry != null ? _entry.label.GetHashCode() : 0;
+
+			public string Label
+				=> _entry?.label ?? string.Empty;
+
+			public Sprite Icon
+				=> _entry?.icon;
+
+			public string Parameter
+				=> _entry?.parameter ?? string.Empty;
+
+			public byte[] MinX  => GetVal(0);
+			public byte[] MaxX  => GetVal(1);
+			public byte[] StepX => GetVal(2);
+			public byte[] MinY  => GetVal(3);
+			public byte[] MaxY  => GetVal(4);
+			public byte[] StepY => GetVal(5);
+
+			private byte[] GetVal(int idx)
+				=> _entry?.values != null 
+					&& _entry.values.Length > idx 
+					&& _entry.values[idx] != null 
+						? _entry.values[idx] 
+						: Array.Empty<byte>();
+		}
+
+		/// <summary>Adapte une entrée liste de choix en IChoiceEntry.</summary>
+		private sealed class ChoiceAdapter : IChoiceEntry {
+			private readonly MenuEntry _entry;
+
+			public ChoiceAdapter(MenuEntry entry) 
+				=> _entry = entry;
+
+			public int Id
+				=> _entry != null ? _entry.label.GetHashCode() : 0;
+
+			public string Label
+				=> _entry?.label ?? string.Empty;
+
+			public Sprite Icon
+				=> _entry?.icon;
+
+			public string Parameter
+				=> _entry?.parameter ?? string.Empty;
+
+			public IChoiceOption[] Options {
+				get {
+					if (_entry?.values == null || _entry.values.Length < 2)
+						return Array.Empty<IChoiceOption>();
+
+					var count = _entry.values.Length / 2;
+					var list  = new IChoiceOption[count];
+					for (int i = 0; i < count; i++) {
+						var valBytes = _entry.values[i * 2];
+						var lblBytes = _entry.values[i * 2 + 1];
+						var optLabel = lblBytes != null ? System.Text.Encoding.UTF8.GetString(lblBytes) : string.Empty;
+						list[i] = new ChoiceOption(valBytes, optLabel);
+					}
+					return list;
+				}
+			}
+
+			private sealed class ChoiceOption : IChoiceOption {
+				public ChoiceOption(byte[] value, string label) {
+					Value = value;
+					Label = label;
+				}
+
+				public byte[] Value { get; }
+				public string Label { get; }
+			}
+		}
+
+		/// <summary>Adapte une entrée saisie de texte en ITextEntry.</summary>
+		private sealed class TextAdapter : ITextEntry {
+			private readonly MenuEntry _entry;
+
+			public TextAdapter(MenuEntry entry) 
+				=> _entry = entry;
+
+			public int Id
+				=> _entry != null 
+				? _entry.label.GetHashCode() 
+				: 0;
+
+			public string Label
+				=> _entry?.label ?? string.Empty;
+
+			public Sprite Icon
+				=> _entry?.icon;
+
+			public string Parameter
+				=> _entry?.parameter ?? string.Empty;
+
+			public string Placeholder
+				=> GetString(0);
+
+			private string GetString(int idx) {
+				if (_entry?.values == null || _entry.values.Length <= idx || _entry.values[idx] == null)
+					return string.Empty;
+				return System.Text.Encoding.UTF8.GetString(_entry.values[idx]);
+			}
+		}
+
+		/// <summary>Adapte une entrée sélecteur de couleur en IColorPickerEntry.</summary>
+		private sealed class ColorPickerAdapter : IColorPickerEntry {
+			private readonly MenuEntry _entry;
+
+			public ColorPickerAdapter(MenuEntry entry) 
+				=> _entry = entry;
+
+			public int Id
+				=> _entry != null 
+				? _entry.label.GetHashCode() 
+				: 0;
+
+			public string Label
+				=> _entry?.label ?? string.Empty;
+
+			public Sprite Icon
+				=> _entry?.icon;
+
+			public string Parameter
+				=> _entry?.parameter ?? string.Empty;
 		}
 
 		/// <summary>Adapte une entrée simple en IEntry.</summary>
 		private sealed class LeafAdapter : IEntry {
 			private readonly MenuEntry _entry;
 
-			public LeafAdapter(MenuEntry entry) {
-				_entry = entry;
-			}
+			public LeafAdapter(MenuEntry entry) 
+				=> _entry = entry;
 
 			public int Id
-				=> _entry != null ? _entry.label.GetHashCode() : 0;
+				=> _entry != null 
+					? _entry.label.GetHashCode() 
+					: 0;
 
 			public string Label
 				=> _entry?.label ?? string.Empty;

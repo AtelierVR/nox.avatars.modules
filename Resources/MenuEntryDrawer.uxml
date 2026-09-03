@@ -1,0 +1,11 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <Style src="project://database/Packages/nox.avatars.modules/Resources/MenuEntryDrawer.uss"/>
+    <ui:VisualElement name="menu-entry-root" class="menu-entry-container">
+        <ui:VisualElement name="header-row" class="menu-entry-header">
+            <uie:PropertyField name="label-field" binding-path="label" label="Label" class="field-label"/>
+            <uie:PropertyField name="icon-field" binding-path="icon" label="Icon"/>
+            <uie:PropertyField name="type-field" binding-path="type" label="Type" class="field-type"/>
+        </ui:VisualElement>
+        <ui:VisualElement name="type-view-container" class="menu-entry-details"/>
+    </ui:VisualElement>
+</ui:UXML>
