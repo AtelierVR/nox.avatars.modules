@@ -172,6 +172,11 @@ namespace Nox.CCK.Avatars.StateMachines {
 				return;
 			}
 
+			if (string.IsNullOrWhiteSpace(key)) {
+				Logger.LogWarning($"{nameof(SetParameter)} has no key configured, the parameter won't be set.");
+				return;
+			}
+
 			var parameter = module.GetParameter(GetKeyHash());
 			if (parameter == null) {
 				Logger.LogWarning($"Parameter '{key}' not found on avatar.");
