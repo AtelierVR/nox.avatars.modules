@@ -93,6 +93,14 @@ namespace Nox.CCK.Avatars.Hand {
 
 		#if UNITY_EDITOR
 
+		[ContextMenu("Print Pivot")]
+		public void PrintPivot()
+		{
+			var pivotWorldPos = Anchor.TransformPoint(pivotPositionOffset);
+			var pivotWorldRot = Anchor.rotation * pivotRotationOffset;
+			Logger.Log($"Pivot {name}: {pivotWorldPos} {pivotWorldRot}");
+		}
+
 		[ContextMenu("Save Opened Poses")]
 		public void SaveOpenedPoses()
 			=> SavePoses(FingerCurl.Opened, true);
