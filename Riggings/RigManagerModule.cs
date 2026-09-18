@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -42,6 +41,13 @@ namespace Nox.CCK.Avatars.Rigging {
 			if (phase != AvatarModulePhase.Init) return true;
 			_runtime = runtime;
 
+			// Enregistré AVANT la résolution du backend : c'est ce paramètre qui reçoit l'annonce
+			// du propriétaire et déclenche le hot-swap. S'il n'existe pas côté viewer, la valeur
+			// annoncée ne peut jamais être appliquée (elle reste dans un UnassignedProperty) et
+			// le rig ne matche jamais. Sans backend on annonce CRC32("") = 0, information
+			// légitime : aucun backend en face ne répondra à cette clé.
+			RegisterTypeParameter();
+
 			var backend = RiggingBackendRegistry.Resolve(runtime);
 			if (backend == null) {
 				Logger.LogWarning("No rigging backend available — rig will not be set up.");
@@ -52,8 +58,6 @@ namespace Nox.CCK.Avatars.Rigging {
 				Logger.LogError($"Rigging backend '{backend.Id}' failed to create a rig.");
 				return false;
 			}
-
-			RegisterTypeParameter();
 
 			await UniTask.NextFrame(cancellationToken: token);
 			return true;
@@ -128,30 +132,51 @@ namespace Nox.CCK.Avatars.Rigging {
 
 		/// <summary>Disposes the current rig and creates a new one for the given backend.</summary>
 		private void SwapRig(IRiggingBackend next) {
-			var oldRig = _rig;
-			var oldId  = oldRig?.Id ?? "none";
+			var oldRig     = _rig;
+			var oldBackend = _backend;
+			var oldId      = oldRig?.Id ?? oldBackend?.Id ?? "none";
 
 			// 1. Dispose the old rig (destroys its generated IK targets + unregisters params).
+			//    _rig doit être relâché : sinon CreateRig() peut échouer en laissant le module
+			//    exposer un rig déjà disposé.
 			oldRig?.Dispose();
+			_rig = null;
 
 			// 2. Create the new rig.
-			if (!CreateRig(next)) {
-				Logger.LogError(
-					$"Failed to hot-swap rig to '{next.Id}'; attempting to restore '{oldId}'.",
+			if (CreateRig(next)) {
+				Logger.LogDebug(
+					$"Hot-swapped rigging backend from '{oldId}' to '{next.Id}'.",
 					context: this,
 					tag: nameof(RigManagerModule)
 				);
-				// Rollback: recreate the previous backend if it was replaced.
-				if (_backend != null && _rig == null && _backend.Id == next.Id)
-					CreateRig(_backend);
 				return;
 			}
 
-			Logger.LogDebug(
-				$"Hot-swapped rigging backend from '{oldId}' to '{next.Id}'.",
+			Logger.LogError(
+				$"Failed to hot-swap rig to '{next.Id}'; attempting to restore '{oldId}'.",
 				context: this,
 				tag: nameof(RigManagerModule)
 			);
+
+			// 3. Rollback : le rig précédent est déjà détruit, il faut le reconstruire depuis le
+			//    backend précédent (CreateRig n'affecte _backend qu'en cas de succès, donc
+			//    _backend décrit toujours le rig qu'on veut restaurer). Sans ça l'avatar se
+			//    retrouve sans rig du tout, alors qu'un repli est disponible.
+			if (oldBackend == null || oldBackend.Id == next.Id)
+				return;
+
+			if (CreateRig(oldBackend))
+				Logger.LogDebug(
+					$"Restored rigging backend '{oldBackend.Id}' after the failed swap.",
+					context: this,
+					tag: nameof(RigManagerModule)
+				);
+			else
+				Logger.LogError(
+					$"Failed to restore rigging backend '{oldBackend.Id}'; no rig is active.",
+					context: this,
+					tag: nameof(RigManagerModule)
+				);
 		}
 
 		private void OnDestroy() {

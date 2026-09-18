@@ -56,7 +56,13 @@ namespace Nox.CCK.Avatars.Parameters {
 
 		public void RegisterParameter(IParameter parameter) {
 			var key = parameter.GetKey();
-			if (_byHash.ContainsKey(key)) return;
+			if (_byHash.ContainsKey(key)) {
+				// Deux paramètres peuvent partager une clé (même nom : un paramètre de l'Animator
+				// et son équivalent fourni par un module, ex. tracking/*/active ou ik/type). Le
+				// premier enregistré gagne ; sans ce log, la disparition du second est invisible.
+				Logger.LogDebug($"Parameter '{parameter.GetName()}' (key={key}) is already registered by '{_byHash[key].GetName()}'; skipped.", tag: nameof(AvatarParameterModule));
+				return;
+			}
 			_paramList.Add(parameter);
 			_byName.TryAdd(parameter.GetName(), parameter);
 			_byHash[key] = parameter;
