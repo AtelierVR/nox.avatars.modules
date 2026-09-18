@@ -11,8 +11,16 @@ namespace Nox.CCK.Avatars.Parameters {
 		public string GetName()
 			=> Parameter.name;
 
-		public int GetKey()
+		/// <summary>
+		/// Hash Unity attendu par l'Animator / l'AnimatorControllerPlayable pour accéder au
+		/// paramètre (<see cref="UnityEngine.AnimatorControllerParameter.nameHash"/>).
+		/// À ne pas confondre avec <see cref="GetKey"/>, qui est la clé de synchronisation.
+		/// </summary>
+		internal int AnimatorHash
 			=> Parameter.nameHash;
+
+		public int GetKey()
+			=> GetName().Hash();
 
 		public ParameterFlags GetFlags()
 			=> Entry?.flags ?? ParameterFlags.AllEditable;

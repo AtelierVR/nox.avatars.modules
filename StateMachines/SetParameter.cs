@@ -6,6 +6,7 @@ using Nox.Avatars.Parameters;
 using UnityEngine;
 using Logger = Nox.CCK.Utils.Logger;
 using Nox.CCK.Avatars.Parameters;
+using Nox.CCK.Network;
 
 namespace Nox.CCK.Avatars.StateMachines {
 	public class SetParameter : BaseStateMachine {
@@ -14,8 +15,13 @@ namespace Nox.CCK.Avatars.StateMachines {
 		public ParameterAction action;
 		public byte[]          value;
 
+		/// <summary>
+		/// Clé de recherche du paramètre ciblé : le CRC32 de son nom, c'est-à-dire la même
+		/// valeur que <see cref="IParameter.GetKey"/> (et non l'<c>Animator.StringToHash</c>,
+		/// qui n'est utilisé que pour l'accès Animator interne).
+		/// </summary>
 		public int GetKeyHash()
-			=> Animator.StringToHash(key);
+			=> key.Hash();
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public void SetValue<T>(T newValue) {
