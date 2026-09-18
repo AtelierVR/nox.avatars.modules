@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Nox.Avatars.Parameters;
 using Nox.CCK.Avatars.Parameters;
 using UnityEditor;
@@ -130,6 +131,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 
 			if (field != null) {
 				container.Add(field);
+				container.tooltip = BuildTooltip(param);
 
 				if (!editable) {
 					var readonlyLabel = new Label("(Lecture seule)");
@@ -194,8 +196,42 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 				if (!ValuesAreEqual(tracker.LastValue, currentValue)) {
 					ParameterFieldFactory.UpdateFieldValue(tracker.Field, tracker.Parameter.GetValueType(), currentValue);
 					tracker.LastValue = currentValue;
+
+					// La clé ne bouge pas mais le buffer sérialisé si — on rafraîchit le tooltip.
+					tracker.Container.tooltip = BuildTooltip(tracker.Parameter);
 				}
 			}
+		}
+
+		/// <summary>
+		/// Construit le tooltip d'un paramètre : sa clé de synchronisation (telle qu'elle part
+		/// sur le réseau) et son buffer binaire sérialisé, exactement comme dans
+		/// <c>PropertiesRequest</c> (big-endian, via <see cref="Nox.CCK.Network.Serializer.ToBytes"/>).
+		/// </summary>
+		private static string BuildTooltip(IParameter param) {
+			if (param == null)
+				return string.Empty;
+
+			int key;
+			byte[] buffer;
+			try {
+				key    = param.GetKey();
+				buffer = Nox.CCK.Network.Serializer.ToBytes(param.Get()) ?? Array.Empty<byte>();
+			} catch (Exception) {
+				// Le module (MonoBehaviour) qui porte le paramètre peut avoir été détruit (swap d'avatar).
+				return $"{param.GetName()}\n(valeur indisponible : module détruit)";
+			}
+
+			var sb = new StringBuilder();
+			sb.Append(param.GetName());
+			sb.Append("\nKey: ").Append(key).Append(" (0x").Append(unchecked((uint)key).ToString("X8")).Append(')');
+			sb.Append("\nType: ").Append(param.GetValueType());
+			sb.Append("\nFlags: ").Append(param.GetFlags());
+			sb.Append("\nBuffer: ").Append(buffer.Length).Append(" byte(s)");
+			if (buffer.Length > 0)
+				sb.Append(" — ").Append(BitConverter.ToString(buffer).Replace('-', ' '));
+
+			return sb.ToString();
 		}
 
 		private bool ValuesAreEqual(object val1, object val2) {

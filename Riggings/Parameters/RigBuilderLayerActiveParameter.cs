@@ -20,7 +20,7 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 			=> _parameterName;
 
 		public int GetKey()
-			=> _parameterName.GetHashCode();
+			=> GetName().Hash();
 
 		public ParameterType GetValueType()
 			=> ParameterType.Bool;

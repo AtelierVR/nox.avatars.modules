@@ -1,5 +1,6 @@
 using System;
 using Nox.Avatars.Parameters;
+using Nox.CCK.Network;
 using Nox.CCK.Utils;
 
 namespace Nox.CCK.Avatars.Rigging.Parameters {
@@ -42,7 +43,7 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 			=> true;
 
 		public int GetKey()
-			=> ParameterName.GetHashCode();
+			=> GetName().Hash();
 
 		public ParameterType GetValueType()
 			=> ParameterType.Int;

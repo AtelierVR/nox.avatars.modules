@@ -21,7 +21,7 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 			=> _transform;
 
 		public int GetKey()
-			=> _name.GetHashCode();
+			=> GetName().Hash();
 
 		public ParameterType GetValueType()
 			=> ParameterType.Quaternion;
