@@ -24,6 +24,9 @@ namespace Nox.CCK.Avatars.Hand {
 
 		public Finger[] fingers = Array.Empty<Finger>();
 
+		[Tooltip("The NearFar transform for this hand (used for near/far interactions).")]
+		public Transform nearFar;
+
 		HandType IHand.Type
 			=> type;
 
@@ -35,6 +38,9 @@ namespace Nox.CCK.Avatars.Hand {
 
 		public Transform Palm
 			=> palm ?? Anchor;
+
+		public Transform NearFar
+			=> nearFar;
 
 		Vector3 IHand.PositionOffset => pivotPositionOffset;
 		Quaternion IHand.RotationOffset => pivotRotationOffset;

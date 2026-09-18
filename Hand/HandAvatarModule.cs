@@ -5,6 +5,7 @@ using Cysharp.Threading.Tasks;
 using Nox.Avatars;
 using Nox.Avatars.Hand;
 using UnityEngine;
+using Logger = Nox.CCK.Utils.Logger;
 
 namespace Nox.CCK.Avatars.Hand {
 
@@ -15,7 +16,7 @@ namespace Nox.CCK.Avatars.Hand {
 		public int Priority
 			=> 40;
 
-			public UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar, AvatarModulePhase phase, CancellationToken token = default)
+		public UniTask<bool> Setup(IRuntimeAvatar runtime, AvatarModulePhase phase, CancellationToken token = default)
 			=> UniTask.FromResult(true);
 
 		public void Dispose() { }
@@ -37,7 +38,7 @@ namespace Nox.CCK.Avatars.Hand {
 				case 1:
 					return true;
 				default:
-					Nox.CCK.Utils.Logger.LogError(
+					Logger.LogError(
 						"Multiple HandAvatarModule components found. Keep only one.",
 						descriptor.Anchor);
 					return false;

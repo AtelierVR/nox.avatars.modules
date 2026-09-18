@@ -26,6 +26,11 @@ namespace Nox.Avatars.Hand {
 		Quaternion RotationOffset { get; }
 
 		/// <summary>
+		/// The NearFar transform for this hand.
+		/// </summary>
+		Transform NearFar { get; }
+
+		/// <summary>
 		/// Finger offset descriptors for this hand.
 		/// The order of fingers should be consistent across all hands (e.g., thumb, index, middle, ring, pinky).
 		/// </summary>
