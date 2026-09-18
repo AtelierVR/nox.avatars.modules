@@ -33,3 +33,13 @@
     -unity-font-style: italic;
     margin-left: 15px;
 }
+
+/* Ligne de détail (Key + buffer sérialisé) affichée au survol d'un paramètre. */
+.parameter-detail {
+    font-size: 10px;
+    color: rgba(140, 200, 255, 0.85);
+    -unity-font-style: italic;
+    margin-top: 3px;
+    margin-left: 2px;
+    white-space: normal;
+}

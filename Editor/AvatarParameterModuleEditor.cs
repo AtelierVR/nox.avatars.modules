@@ -27,6 +27,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 		private class ParameterFieldTracker {
 			public VisualElement Container;
 			public VisualElement Field;
+			public Label          Detail;
 			public IParameter    Parameter;
 			public object        LastValue;
 			public bool          IsFocused;
@@ -131,7 +132,6 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 
 			if (field != null) {
 				container.Add(field);
-				container.tooltip = BuildTooltip(param);
 
 				if (!editable) {
 					var readonlyLabel = new Label("(Lecture seule)");
@@ -139,12 +139,42 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 					container.Add(readonlyLabel);
 				}
 
+				ApplyTooltip(container, BuildTooltip(param));
+
+				// Secours : si l'élément survolé est un enfant interne du champ (l'input d'un
+				// TextField par exemple) et que l'évènement remonte jusqu'ici, on fournit le
+				// tooltip dynamiquement.
+				container.RegisterCallback<TooltipEvent>(evt => {
+					evt.tooltip = BuildTooltip(param);
+					evt.StopPropagation();
+				});
+
+				// Repli garanti : ligne de détail inline sous le champ, affichée pendant le
+				// survol. Elle suit la souris dans la liste — contrairement à un bandeau en
+				// haut, qui obligerait à remonter pour lire le bas de la liste.
+				var detail = new Label {
+					name        = "parameter-detail",
+					pickingMode = PickingMode.Ignore,
+					style       = { display = DisplayStyle.None }
+				};
+				detail.AddToClassList("parameter-detail");
+				container.Add(detail);
+
+				container.RegisterCallback<PointerEnterEvent>(_ => {
+					detail.text          = BuildDetail(param);
+					detail.style.display = DisplayStyle.Flex;
+				});
+				container.RegisterCallback<PointerLeaveEvent>(_ => {
+					detail.style.display = DisplayStyle.None;
+				});
+
 				_container.Add(container);
 
 				// Tracker ce champ
 				var tracker = new ParameterFieldTracker {
 					Container = container,
 					Field     = field,
+					Detail    = detail,
 					Parameter = param,
 					LastValue = param.Get(),
 					IsFocused = false
@@ -197,9 +227,47 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 					ParameterFieldFactory.UpdateFieldValue(tracker.Field, tracker.Parameter.GetValueType(), currentValue);
 					tracker.LastValue = currentValue;
 
-					// La clé ne bouge pas mais le buffer sérialisé si — on rafraîchit le tooltip.
-					tracker.Container.tooltip = BuildTooltip(tracker.Parameter);
+					// La clé ne bouge pas mais le buffer sérialisé si — on rafraîchit le tooltip
+					// et la ligne de détail si elle est visible.
+					ApplyTooltip(tracker.Container, BuildTooltip(tracker.Parameter));
+					if (tracker.Detail != null && tracker.Detail.style.display.value == DisplayStyle.Flex)
+						tracker.Detail.text = BuildDetail(tracker.Parameter);
 				}
+			}
+		}
+
+		/// <summary>
+		/// Applique le tooltip à un élément ET à tous ses descendants.
+		/// Indispensable : l'élément réellement survolé est souvent un enfant interne du champ
+		/// (l'input d'un <c>TextField</c>, le label d'un <c>Toggle</c>...), et un tooltip posé
+		/// uniquement sur le parent n'est pas toujours pris en compte.
+		/// </summary>
+		private static void ApplyTooltip(VisualElement root, string text) {
+			if (root == null)
+				return;
+
+			root.tooltip = text;
+			root.Query<VisualElement>().ForEach(element => element.tooltip = text);
+		}
+
+		/// <summary>
+		/// Lit la clé et le buffer sérialisé d'un paramètre. Renvoie <c>false</c> quand le module
+		/// (MonoBehaviour) qui le porte a été détruit (swap d'avatar) — auquel cas l'appelant
+		/// affiche un placeholder au lieu de laisser une exception remonter dans le rafraîchissement.
+		/// </summary>
+		private static bool TryReadParameter(IParameter param, out int key, out byte[] buffer) {
+			key    = 0;
+			buffer = Array.Empty<byte>();
+
+			if (param == null)
+				return false;
+
+			try {
+				key    = param.GetKey();
+				buffer = Nox.CCK.Network.Serializer.ToBytes(param.Get()) ?? Array.Empty<byte>();
+				return true;
+			} catch (Exception) {
+				return false;
 			}
 		}
 
@@ -212,15 +280,8 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			if (param == null)
 				return string.Empty;
 
-			int key;
-			byte[] buffer;
-			try {
-				key    = param.GetKey();
-				buffer = Nox.CCK.Network.Serializer.ToBytes(param.Get()) ?? Array.Empty<byte>();
-			} catch (Exception) {
-				// Le module (MonoBehaviour) qui porte le paramètre peut avoir été détruit (swap d'avatar).
+			if (!TryReadParameter(param, out var key, out var buffer))
 				return $"{param.GetName()}\n(valeur indisponible : module détruit)";
-			}
 
 			var sb = new StringBuilder();
 			sb.Append(param.GetName());
@@ -230,6 +291,25 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			sb.Append("\nBuffer: ").Append(buffer.Length).Append(" byte(s)");
 			if (buffer.Length > 0)
 				sb.Append(" — ").Append(BitConverter.ToString(buffer).Replace('-', ' '));
+
+			return sb.ToString();
+		}
+
+		/// <summary>
+		/// Version compacte sur une seule ligne, affichée inline dans la ligne du paramètre
+		/// pendant le survol (aucun défilement nécessaire pour lire le bas de la liste).
+		/// </summary>
+		private static string BuildDetail(IParameter param) {
+			if (param == null)
+				return string.Empty;
+
+			if (!TryReadParameter(param, out var key, out var buffer))
+				return "(valeur indisponible : module détruit)";
+
+			var sb = new StringBuilder();
+			sb.Append("Key ").Append(key).Append(" (0x").Append(unchecked((uint)key).ToString("X8")).Append(')');
+			sb.Append("   ·   Buffer ").Append(buffer.Length).Append(" B : ");
+			sb.Append(buffer.Length > 0 ? BitConverter.ToString(buffer).Replace('-', ' ') : "—");
 
 			return sb.ToString();
 		}
