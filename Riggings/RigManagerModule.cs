@@ -106,6 +106,7 @@ namespace Nox.CCK.Avatars.Rigging {
 		/// </summary>
 		private void OnBackendRequested(int crc) {
 			var requested = ResolveByCrc(crc);
+			Logger.LogDebug($"Receive backend rigging {crc} === {requested.Id}");
 			if (requested == null) {
 				Logger.LogWarning(
 					$"Requested rigging backend (crc={crc}) is not registered; keeping '{_backend?.Id ?? "none"}'.",
