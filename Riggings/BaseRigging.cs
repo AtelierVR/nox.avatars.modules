@@ -67,10 +67,9 @@ namespace Nox.CCK.Avatars.Rigging {
 
 		public Transform GetPart(HumanBodyBones bone) {
 			var index = bone.ToIndex();
-			for (var i = 0; i < Parts.Count; i++) {
+			for (var i = 0; i < Parts.Count; i++)
 				if (Parts[i].GetId() == index)
 					return Parts[i].GetTransform();
-			}
 			return null;
 		}
 
@@ -97,18 +96,16 @@ namespace Nox.CCK.Avatars.Rigging {
 			=> Parameters.Cast<IParameter>().ToArray();
 
 		public IParameter GetParameter(string n) {
-			for (var i = 0; i < Parameters.Count; i++) {
+			for (var i = 0; i < Parameters.Count; i++)
 				if (Parameters[i].GetName() == n)
 					return Parameters[i];
-			}
 			return null;
 		}
 
 		public IParameter GetParameter(int hash) {
-			for (var i = 0; i < Parameters.Count; i++) {
+			for (var i = 0; i < Parameters.Count; i++)
 				if (Parameters[i].GetKey() == hash)
 					return Parameters[i];
-			}
 			return null;
 		}
 
