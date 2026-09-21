@@ -18,8 +18,7 @@ namespace Nox.CCK.Avatars.Scale {
 			=> ParameterType.Bool;
 
 		public ParameterFlags GetFlags()
-			=> ParameterFlags.OwnerEditable
-				| ParameterFlags.OwnerSyncsToViewers;
+			=> ParameterFlags.OwnerEditable; // local only: EyeHeight carries the synced value
 
 		public object Get()
 			=> _module.ScaleModified;
