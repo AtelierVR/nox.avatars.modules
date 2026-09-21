@@ -7,6 +7,7 @@ using Nox.Avatars;
 using Nox.Avatars.Parameters;
 using Nox.CCK.Avatars.Common;
 using UnityEngine;
+using UnityEngine.Events;
 using Logger = Nox.CCK.Utils.Logger;
 
 namespace Nox.CCK.Avatars.Parameters {
@@ -40,7 +41,11 @@ namespace Nox.CCK.Avatars.Parameters {
 		public int Priority
 			=> 10;
 
-		public async UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar, AvatarModulePhase phase, CancellationToken token = default) {
+        public UnityEvent<IParameter> OnRegistred { get; } = new();
+
+        public UnityEvent<IParameter> OnUnRegistred { get; } = new();
+
+        public async UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar, AvatarModulePhase phase, CancellationToken token = default) {
 			await UniTask.Yield(cancellationToken: token);
 			switch (phase) {
 				case AvatarModulePhase.Init:
@@ -57,16 +62,15 @@ namespace Nox.CCK.Avatars.Parameters {
 		public void RegisterParameter(IParameter parameter) {
 			var key = parameter.GetKey();
 			if (_byHash.ContainsKey(key)) {
-				// Deux paramètres peuvent partager une clé (même nom : un paramètre de l'Animator
-				// et son équivalent fourni par un module, ex. tracking/*/active ou ik/type). Le
-				// premier enregistré gagne ; sans ce log, la disparition du second est invisible.
 				Logger.LogDebug($"Parameter '{parameter.GetName()}' (key={key}) is already registered by '{_byHash[key].GetName()}'; skipped.", tag: nameof(AvatarParameterModule));
 				return;
 			}
+			
 			_paramList.Add(parameter);
 			_byName.TryAdd(parameter.GetName(), parameter);
 			_byHash[key] = parameter;
 			Parameters   = _paramList.ToArray();
+			OnRegistred.Invoke(parameter);
 		}
 
 		public void UnregisterParameter(IParameter parameter) {
@@ -74,6 +78,7 @@ namespace Nox.CCK.Avatars.Parameters {
 			_byName.Remove(parameter.GetName());
 			_byHash.Remove(parameter.GetKey());
 			Parameters = _paramList.ToArray();
+			OnUnRegistred.Invoke(parameter);
 		}
 
 		private void PopulateParameters() {
@@ -82,16 +87,13 @@ namespace Nox.CCK.Avatars.Parameters {
 
 			var entries = parameters?.parameters ?? Array.Empty<ParameterEntry>();
 
-			// Paramètres des contrôleurs du playable graph (priorité haute)
-			foreach (var controller in animator.GetControllers()) {
+			foreach (var controller in animator.GetControllers())
 				for (var i = 0; i < controller.GetParameterCount(); i++) {
 					var cp    = controller.GetParameter(i);
 					var entry = entries.FirstOrDefault(e => e.GetNameHash() == cp.nameHash);
 					RegisterParameter(new PlayableBaseParameter { Controller = controller, Parameter = cp, Entry = entry });
 				}
-			}
 
-			// Paramètres de l'Animator de base (dédupliqués si déjà enregistrés)
 			foreach (var parameter in animator.parameters) {
 				var entry = entries.FirstOrDefault(e => e.GetNameHash() == parameter.nameHash);
 				RegisterParameter(new AnimatorBaseParameter { Animator = animator, Parameter = parameter, Entry = entry });
