@@ -36,32 +36,31 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 			_onChanged   = onChanged   ?? throw new ArgumentNullException(nameof(onChanged));
 		}
 
-		public string GetName()
+		public string Name
 			=> ParameterName;
 
 		public bool IsValid()
 			=> true;
 
-		public int GetKey()
-			=> GetName().Hash();
+		public int Key
+			=> Name.Hash();
 
-		public ParameterType GetValueType()
+		public ParameterType ValueType
 			=> ParameterType.Int;
 
 		/// <summary>
 		/// Owner → viewers. The owner pushes its backend choice; viewers receive it and adapt.
 		/// </summary>
-		public ParameterFlags GetFlags()
+		public ParameterFlags Flags
 			=> ParameterFlags.OwnerSyncsToViewers;
 
-		public object Get()
-			=> (object)Hash.CRC32(_getBackendId());
-
-		public void Set(object value) {
-			if (value == null)
-				return;
-			var crc = value.ToInt();
-			_onChanged(crc);
+		public object Value {
+			get => Hash.CRC32(_getBackendId());
+			set {
+				if (value == null)
+					return;
+				_onChanged(value.ToInt());
+			}
 		}
 	}
 }

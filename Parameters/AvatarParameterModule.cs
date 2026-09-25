@@ -60,14 +60,14 @@ namespace Nox.CCK.Avatars.Parameters {
 		}
 
 		public void RegisterParameter(IParameter parameter) {
-			var key = parameter.GetKey();
+			var key = parameter.Key;
 			if (_byHash.ContainsKey(key)) {
-				Logger.LogDebug($"Parameter '{parameter.GetName()}' (key={key}) is already registered by '{_byHash[key].GetName()}'; skipped.", tag: nameof(AvatarParameterModule));
+				Logger.LogDebug($"Parameter '{parameter.Name}' (key={key}) is already registered by '{_byHash[key].Name}'; skipped.", tag: nameof(AvatarParameterModule));
 				return;
 			}
 			
 			_paramList.Add(parameter);
-			_byName.TryAdd(parameter.GetName(), parameter);
+			_byName.TryAdd(parameter.Name, parameter);
 			_byHash[key] = parameter;
 			Parameters   = _paramList.ToArray();
 			OnRegistred.Invoke(parameter);
@@ -75,8 +75,8 @@ namespace Nox.CCK.Avatars.Parameters {
 
 		public void UnregisterParameter(IParameter parameter) {
 			_paramList.Remove(parameter);
-			_byName.Remove(parameter.GetName());
-			_byHash.Remove(parameter.GetKey());
+			_byName.Remove(parameter.Name);
+			_byHash.Remove(parameter.Key);
 			Parameters = _paramList.ToArray();
 			OnUnRegistred.Invoke(parameter);
 		}

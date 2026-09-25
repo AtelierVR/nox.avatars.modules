@@ -8,22 +8,21 @@ namespace Nox.CCK.Avatars.Scale {
 		public ScaleParameter(ScaleAvatarModule module)
 			=> _module = module;
 
-		public string GetName()
+		public string Name
 			=> "Scale";
 
-		public int GetKey()
-			=> GetName().Hash();
+		public int Key
+			=> Name.Hash();
 
-		public ParameterType GetValueType()
+		public ParameterType ValueType
 			=> ParameterType.Float;
 
-		public ParameterFlags GetFlags()
-			=> ParameterFlags.OwnerEditable; // local only: EyeHeight carries the synced value
+		public ParameterFlags Flags
+			=> ParameterFlags.OwnerEditable; // local only: Height carries the synced value
 
-		public object Get()
-			=> _module.Scale;
-
-		public void Set(object value)
-			=> _module.Scale = value.ToFloat();
+		public object Value {
+			get => _module.Scale;
+			set => _module.Scale = value.ToFloat();
+		}
 	}
 }

@@ -14,30 +14,29 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 			_isReadOnly = isReadOnly;
 		}
 
-		public string GetName()
+		public string Name
 			=> _name;
 
 		public bool IsValid()
 			=> _transform;
 
-		public int GetKey()
-			=> GetName().Hash();
+		public int Key
+			=> Name.Hash();
 
-		public ParameterType GetValueType()
+		public ParameterType ValueType
 			=> ParameterType.Quaternion;
 
-		public ParameterFlags GetFlags()
+		public ParameterFlags Flags
 			=> ParameterFlags.Persistent;
 
-		public object Get()
-			=> _transform
+		public object Value {
+			get => _transform
 				? _transform.rotation
 				: Quaternion.identity;
-
-
-		public void Set(object value) {
-			if (_isReadOnly || !_transform) return;
-			_transform.rotation = value.ToQuaternion();
+			set {
+				if (_isReadOnly || !_transform) return;
+				_transform.rotation = value.ToQuaternion();
+			}
 		}
 	}
 }

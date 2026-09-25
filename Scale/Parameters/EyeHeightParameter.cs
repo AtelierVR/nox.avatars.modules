@@ -2,29 +2,32 @@ using Nox.Avatars.Parameters;
 using Nox.CCK.Network;
 
 namespace Nox.CCK.Avatars.Scale {
+	/// <summary>
+	/// Live eye height: the distance from the anchor (feet) to the camera point
+	/// (see <see cref="ScaleAvatarModule.EyeHeight"/>).
+	/// Derived from the rig, so it is read-only and identical on every client.
+	/// </summary>
 	public class EyeHeightParameter : IParameter {
 		private readonly ScaleAvatarModule _module;
 
 		public EyeHeightParameter(ScaleAvatarModule module) 
 			=> _module = module;
 
-		public string GetName()
+		public string Name
 			=> "EyeHeight";
 
-		public int GetKey()
-			=> GetName().Hash();
+		public int Key
+			=> Name.Hash();
 
-		public ParameterType GetValueType()
+		public ParameterType ValueType
 			=> ParameterType.Float;
 
-		public ParameterFlags GetFlags()
-			=> ParameterFlags.OwnerEditable
-				| ParameterFlags.OwnerSyncsToViewers;
+		public ParameterFlags Flags
+			=> ParameterFlags.None;
 
-		public object Get()
-			=> _module.Height;
-
-		public void Set(object value)
-			=> _module.Height = value.ToFloat();
+		public object Value {
+			get => _module.EyeHeight;
+			set { }
+		}
 	}
 }

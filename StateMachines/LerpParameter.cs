@@ -1,7 +1,6 @@
 using System.Linq;
 using Nox.Avatars;
 using Nox.Avatars.Parameters;
-using Nox.CCK.Network;
 using UnityEngine;
 
 namespace Nox.CCK.Avatars.StateMachines {
@@ -42,38 +41,36 @@ namespace Nox.CCK.Avatars.StateMachines {
 				return;
 
 			var t           = Time.deltaTime * speed;
-			var inputValue  = inputParam.Get();
-			var outputValue = outputParam.Get();
+			var inputValue  = inputParam.Value;
+			var outputValue = outputParam.Value;
 
-			outputParam.Set(
-				outputParam.GetValueType() switch {
-					ParameterType.Float => Mathf.Lerp(
-						outputValue.ToFloat(),
-						inputValue.ToFloat(),
-						t
-					),
-					ParameterType.Double => LerpDouble(
-						outputValue.ToDouble(),
-						inputValue.ToDouble(),
-						t
-					),
-					ParameterType.Vector3 => Vector3.Lerp(
-						outputValue.ToVector3(),
-						inputValue.ToVector3(),
-						t
-					),
-					ParameterType.Quaternion => Quaternion.Lerp(
-						outputValue.ToQuaternion(),
-						inputValue.ToQuaternion(),
-						t
-					),
-					_ => Mathf.Lerp(
-						outputValue.ToFloat(),
-						inputValue.ToFloat(),
-						t
-					),
-				}
-			);
+			outputParam.Value = outputParam.ValueType switch {
+				ParameterType.Float => Mathf.Lerp(
+					outputValue.ToFloat(),
+					inputValue.ToFloat(),
+					t
+				),
+				ParameterType.Double => LerpDouble(
+					outputValue.ToDouble(),
+					inputValue.ToDouble(),
+					t
+				),
+				ParameterType.Vector3 => Vector3.Lerp(
+					outputValue.ToVector3(),
+					inputValue.ToVector3(),
+					t
+				),
+				ParameterType.Quaternion => Quaternion.Lerp(
+					outputValue.ToQuaternion(),
+					inputValue.ToQuaternion(),
+					t
+				),
+				_ => Mathf.Lerp(
+					outputValue.ToFloat(),
+					inputValue.ToFloat(),
+					t
+				),
+			};
 		}
 	}
 }

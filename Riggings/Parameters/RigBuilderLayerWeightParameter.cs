@@ -16,45 +16,47 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 			_rigBuilder    = rigBuilder;
 		}
 
-		public string GetName()
+		public string Name
 			=> _parameterName;
 
 		public bool IsValid()
 			=> _rigBuilder && _rigBuilder.enabled && _rigBuilder.layers.Any(l => l.rig && l.rig.name == _layerName);
 
-		public int GetKey()
-			=> GetName().Hash();
+		public int Key
+			=> Name.Hash();
 
-		public ParameterType GetValueType()
+		public ParameterType ValueType
 			=> ParameterType.Float;
 
-		public ParameterFlags GetFlags()
+		public ParameterFlags Flags
 			=> ParameterFlags.OwnerEditable
 				| ParameterFlags.OwnerSyncsToViewers;
 
-		public object Get() {
-			if (!_rigBuilder) return 0f;
-			var layer = _rigBuilder.layers.FirstOrDefault(l => l.rig && l.rig.name == _layerName);
-			return layer?.rig?.weight ?? 0f;
-		}
-
-		public void Set(object value) {
-			if (!_rigBuilder || !_rigBuilder.enabled) return;
-			
-			foreach (var layer in _rigBuilder.layers.Where(layer => layer.rig && layer.rig.name == _layerName)) {
-				layer.rig.weight = Mathf.Clamp01(value.ToFloat());
-				break;
+		public object Value {
+			get {
+				if (!_rigBuilder) 
+					return 0f;
+				var layer = _rigBuilder.layers
+					.FirstOrDefault(l => l.rig && l.rig.name == _layerName);
+				return layer?.rig?.weight ?? 0f;
 			}
-			
-			// Only rebuild if safe to do so  
-			if (Application.isPlaying && _rigBuilder.isActiveAndEnabled) {
-				try {
-					_rigBuilder.Build();
+			set {
+				if (!_rigBuilder || !_rigBuilder.enabled) 
+					return;
+
+				foreach (var layer in _rigBuilder.layers.Where(layer => layer.rig && layer.rig.name == _layerName)) {
+					layer.rig.weight = Mathf.Clamp01(value.ToFloat());
+					break;
 				}
-				catch (System.InvalidOperationException ex) when (ex.Message.Contains("TransformStreamHandle")) {
-					// Silently handle timing issues - build will happen later
-					UnityEngine.Debug.LogWarning($"RigBuilder build skipped due to timing: {ex.Message}");
-				}
+
+				// Only rebuild if safe to do so  
+				if (Application.isPlaying && _rigBuilder.isActiveAndEnabled)
+					try {
+						_rigBuilder.Build();
+					} catch (System.InvalidOperationException ex) when (ex.Message.Contains("TransformStreamHandle")) {
+						// Silently handle timing issues - build will happen later
+						Debug.LogWarning($"RigBuilder build skipped due to timing: {ex.Message}");
+					}
 			}
 		}
 	}

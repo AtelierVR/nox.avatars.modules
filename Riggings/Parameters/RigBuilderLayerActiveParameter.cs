@@ -16,41 +16,41 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 			_rigBuilder    = rigBuilder;
 		}
 
-		public string GetName()
+		public string Name
 			=> _parameterName;
 
-		public int GetKey()
-			=> GetName().Hash();
+		public int Key
+			=> Name.Hash();
 
-		public ParameterType GetValueType()
+		public ParameterType ValueType
 			=> ParameterType.Bool;
 
-		public ParameterFlags GetFlags()
+		public ParameterFlags Flags
 			=> ParameterFlags.OwnerEditable
 				| ParameterFlags.OwnerSyncsToViewers;
 
-		public object Get() {
-			if (!_rigBuilder || !_rigBuilder.enabled) return false;
-			var layer = _rigBuilder.layers.FirstOrDefault(l => l.rig && l.rig.name == _layerName);
-			return layer is { active: true };
-		}
-
-		public void Set(object value) {
-			if (!_rigBuilder || !_rigBuilder.enabled) return;
+		public object Value {
+			get {
+				if (!_rigBuilder || !_rigBuilder.enabled) 
+					return false;
+				var layer = _rigBuilder.layers
+					.FirstOrDefault(l => l.rig && l.rig.name == _layerName);
+				return layer is { active: true };
+			}
+			set {
+			if (!_rigBuilder || !_rigBuilder.enabled) 
+				return;
 			
 			foreach (var layer in _rigBuilder.layers.Where(layer => layer.rig && layer.rig.name == _layerName)) {
 				layer.active = value.ToBool();
 				break;
 			}
 			
-			// Only rebuild if safe to do so
-			if (Application.isPlaying && _rigBuilder.isActiveAndEnabled) {
+			if (Application.isPlaying && _rigBuilder.isActiveAndEnabled)
 				try {
 					_rigBuilder.Build();
-				}
-				catch (System.InvalidOperationException ex) when (ex.Message.Contains("TransformStreamHandle")) {
-					// Silently handle timing issues - build will happen later
-					UnityEngine.Debug.LogWarning($"RigBuilder build skipped due to timing: {ex.Message}");
+				} catch (System.InvalidOperationException ex) when (ex.Message.Contains("TransformStreamHandle")) {
+					Debug.LogWarning($"RigBuilder build skipped due to timing: {ex.Message}");
 				}
 			}
 		}

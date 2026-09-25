@@ -97,14 +97,14 @@ namespace Nox.CCK.Avatars.Rigging {
 
 		public IParameter GetParameter(string n) {
 			for (var i = 0; i < Parameters.Count; i++)
-				if (Parameters[i].GetName() == n)
+				if (Parameters[i].Name == n)
 					return Parameters[i];
 			return null;
 		}
 
 		public IParameter GetParameter(int hash) {
 			for (var i = 0; i < Parameters.Count; i++)
-				if (Parameters[i].GetKey() == hash)
+				if (Parameters[i].Key == hash)
 					return Parameters[i];
 			return null;
 		}

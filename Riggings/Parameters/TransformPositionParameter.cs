@@ -14,30 +14,29 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 			_isReadOnly = isReadOnly;
 		}
 
-		public string GetName()
+		public string Name
 			=> _name;
 
 		public bool IsValid()
 			=> _transform;
 
-		public int GetKey()
-			=> GetName().Hash();
+		public int Key
+			=> Name.Hash();
 
-		public ParameterType GetValueType()
+		public ParameterType ValueType
 			=> ParameterType.Vector3;
 
-		public ParameterFlags GetFlags()
+		public ParameterFlags Flags
 			=> ParameterFlags.Persistent;
 
-		public object Get()
-			=> _transform
+		public object Value {
+			get => _transform
 				? _transform.position
 				: Vector3.zero;
-
-
-		public void Set(object value) {
-			if (_isReadOnly || !_transform) return;
-			_transform.position = value.ToVector3();
+			set {
+				if (_isReadOnly || !_transform) return;
+				_transform.position = value.ToVector3();
+			}
 		}
 	}
 }

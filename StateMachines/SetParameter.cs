@@ -192,7 +192,7 @@ namespace Nox.CCK.Avatars.StateMachines {
 			try {
 				switch (action) {
 					case ParameterAction.Assign:
-						parameter.Set(GetValue());
+						parameter.Value = GetValue();
 						break;
 					case ParameterAction.Add:
 						parameter.AddValue(GetValue());

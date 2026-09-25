@@ -24,67 +24,70 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 			_rigBuilder    = rigBuilder;
 		}
 
-		public string GetName()
+		public string Name
 			=> _parameterName;
 
 		public bool IsValid()
 			=> _rigBuilder && _rigBuilder.layers.Any(l => l.rig && l.rig.name == _rigName);
 
-		public int GetKey()
-			=> GetName().Hash();
+		public int Key
+			=> Name.Hash();
 
-		public ParameterType GetValueType()
+		public ParameterType ValueType
 			=> ParameterType.Float;
 
-		public ParameterFlags GetFlags()
+		public ParameterFlags Flags
 			=> ParameterFlags.OwnerEditable
 				| ParameterFlags.OwnerSyncsToViewers;
 		
 		// ReSharper disable Unity.PerformanceAnalysis
-		public object Get() {
-			if (!_rigBuilder) return 0f;
+		public object Value {
+			get {
+				if (!_rigBuilder) return 0f;
 
-			foreach (var layer in _rigBuilder.layers) {
-				if (!layer.rig || !layer.rig.name.Contains(_rigName)) continue;
+				foreach (var layer in _rigBuilder.layers) {
+					if (!layer.rig || !layer.rig.name.Contains(_rigName)) continue;
 
-				var ikConstraints = layer.rig.GetComponentsInChildren<TwoBoneIKConstraint>();
-				foreach (var constraint in ikConstraints) {
-					return _weightType switch {
-						WeightType.Position => constraint.data.targetPositionWeight,
-						WeightType.Rotation => constraint.data.targetRotationWeight,
-						WeightType.Hint     => constraint.data.hintWeight,
-						_                   => 0f
-					};
+					var ikc = layer.rig.GetComponentsInChildren<TwoBoneIKConstraint>();
+					foreach (var constraint in ikc)
+						return _weightType switch {
+							WeightType.Position => constraint.data.targetPositionWeight,
+							WeightType.Rotation => constraint.data.targetRotationWeight,
+							WeightType.Hint     => constraint.data.hintWeight,
+							_                   => 0f
+						};
 				}
+
+				return 0f;
 			}
+			set {
+				if (!_rigBuilder) 
+					return;
 
-			return 0f;
-		}
+				var weight = value.ToFloat();
 
-		public void Set(object value) {
-			if (!_rigBuilder) return;
+				foreach (var layer in _rigBuilder.layers) {
+					if (!layer.rig || !layer.rig.name.Contains(_rigName)) 
+						continue;
 
-			var weight = value.ToFloat();
+					var ikc = layer.rig.GetComponentsInChildren<TwoBoneIKConstraint>();
+					foreach (var constraint in ikc) {
+						var data = constraint.data;
 
-			foreach (var layer in _rigBuilder.layers) {
-				if (!layer.rig || !layer.rig.name.Contains(_rigName)) continue;
+						switch (_weightType) {
+							case WeightType.Position:
+								data.targetPositionWeight = Mathf.Clamp01(weight);
+								break;
+							case WeightType.Rotation:
+								data.targetRotationWeight = Mathf.Clamp01(weight);
+								break;
+							case WeightType.Hint:
+								data.hintWeight = Mathf.Clamp01(weight);
+								break;
+						}
 
-				var ikConstraints = layer.rig.GetComponentsInChildren<TwoBoneIKConstraint>();
-				foreach (var constraint in ikConstraints) {
-					var data = constraint.data;
-					switch (_weightType) {
-						case WeightType.Position:
-							data.targetPositionWeight = Mathf.Clamp01(weight);
-							break;
-						case WeightType.Rotation:
-							data.targetRotationWeight = Mathf.Clamp01(weight);
-							break;
-						case WeightType.Hint:
-							data.hintWeight = Mathf.Clamp01(weight);
-							break;
+						constraint.data = data;
 					}
-
-					constraint.data = data;
 				}
 			}
 		}

@@ -15,31 +15,33 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 			_parameterName = $"tracking/{bone.ToString().ToSnakeCase()}/rotation";
 		}
 
-		public string GetName()
+		public string Name
 			=> _parameterName;
 
 		public bool IsValid()
 			=> _module != null && _module.GetPart(_bone) != null;
 
-		public int GetKey()
-			=> GetName().Hash();
+		public int Key
+			=> Name.Hash();
 
-		public ParameterType GetValueType()
+		public ParameterType ValueType
 			=> ParameterType.Quaternion;
 
-		public ParameterFlags GetFlags()
+		public ParameterFlags Flags
 			=> ParameterFlags.Persistent;
 
-
-		public object Get()
-			=> _module != null ? _module.GetPart(_bone)?.rotation ?? Quaternion.identity : Quaternion.identity;
-
-
-		public void Set(object value) {
-			if (_module == null) return;
-			var part = _module.GetPart(_bone);
-			if (part != null)
-				part.rotation = value.ToQuaternion();
+		public object Value {
+			get => _module != null 
+				? _module.GetPart(_bone)?.rotation 
+					?? Quaternion.identity 
+				: Quaternion.identity;
+			set {
+				if (_module == null) 
+					return;
+				var part = _module.GetPart(_bone);
+				if (part != null)
+					part.rotation = value.ToQuaternion();
+			}
 		}
 	}
 }

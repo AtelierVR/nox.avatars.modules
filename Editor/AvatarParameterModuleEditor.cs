@@ -111,8 +111,8 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			_infoLabel.style.display = DisplayStyle.Flex;
 
 			var isLocal = runtimeParams
-					.FirstOrDefault(e => e.GetName().Contains("IsLocal"))
-					?.Get().ToBool()
+					.FirstOrDefault(e => e.Name.Contains("IsLocal"))
+					?.Value.ToBool()
 				?? true;
 
 			// Créer les champs pour chaque paramètre
@@ -127,7 +127,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			var container = new VisualElement();
 			container.AddToClassList("parameter-field");
 
-			var editable = param.GetFlags().HasFlag(isLocal ? ParameterFlags.OwnerEditable : ParameterFlags.ViewerEditable);
+			var editable = param.Flags.HasFlag(isLocal ? ParameterFlags.OwnerEditable : ParameterFlags.ViewerEditable);
 			var field    = CreateFieldForParameter(param, editable);
 
 			if (field != null) {
@@ -176,36 +176,50 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 					Field     = field,
 					Detail    = detail,
 					Parameter = param,
-					LastValue = param.Get(),
+					LastValue = param.Value,
 					IsFocused = false
 				};
 
-				_parameterFields[param.GetName()] = tracker;
+				_parameterFields[param.Name] = tracker;
 
 				// Détecter le focus pour arrêter les updates
 				field.RegisterCallback<FocusInEvent>(evt => {
-					if (_parameterFields.TryGetValue(param.GetName(), out var t))
+					if (_parameterFields.TryGetValue(param.Name, out var t))
 						t.IsFocused = true;
 				});
 
 				field.RegisterCallback<FocusOutEvent>(evt => {
-					if (_parameterFields.TryGetValue(param.GetName(), out var t))
+					if (_parameterFields.TryGetValue(param.Name, out var t))
 						t.IsFocused = false;
 				});
 			}
 		}
 
 		private VisualElement CreateFieldForParameter(IParameter param, bool editable) {
-			var paramName = param.GetName();
-			var type = param.GetValueType();
-			var value = param.Get();
+			var paramName = param.Name;
+			var type = param.ValueType;
+			var value = param.Value;
 
-			if (type == ParameterType.ByteArray) {
-				return ParameterFieldFactory.CreateField(paramName, type, editable, value, bytes => param.Set(bytes));
-			}
+			if (type == ParameterType.ByteArray)
+				return ParameterFieldFactory.CreateField(
+					paramName, 
+					type, 
+					editable, 
+					value, 
+					bytes => param.Value = bytes
+				);
 
-			var field = ParameterFieldFactory.CreateFieldByType(type, paramName, value, editable);
-			ParameterFieldFactory.RegisterCallback(field, type, bytes => param.Set(bytes));
+			var field = ParameterFieldFactory.CreateFieldByType(
+				type, 
+				paramName, 
+				value, 
+				editable
+			);
+			ParameterFieldFactory.RegisterCallback(
+				field, 
+				type, 
+				bytes => param.Value = bytes
+			);
 			return field;
 		}
 
@@ -220,11 +234,11 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 				if (tracker.IsFocused)
 					continue;
 
-				var currentValue = tracker.Parameter.Get();
+				var currentValue = tracker.Parameter.Value;
 
 				// Mettre à jour uniquement si la valeur a changé
 				if (!ValuesAreEqual(tracker.LastValue, currentValue)) {
-					ParameterFieldFactory.UpdateFieldValue(tracker.Field, tracker.Parameter.GetValueType(), currentValue);
+					ParameterFieldFactory.UpdateFieldValue(tracker.Field, tracker.Parameter.ValueType, currentValue);
 					tracker.LastValue = currentValue;
 
 					// La clé ne bouge pas mais le buffer sérialisé si — on rafraîchit le tooltip
@@ -263,8 +277,8 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 				return false;
 
 			try {
-				key    = param.GetKey();
-				buffer = Nox.CCK.Network.Serializer.ToBytes(param.Get()) ?? Array.Empty<byte>();
+				key    = param.Key;
+				buffer = Network.Serializer.ToBytes(param.Value) ?? Array.Empty<byte>();
 				return true;
 			} catch (Exception) {
 				return false;
@@ -281,13 +295,13 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 				return string.Empty;
 
 			if (!TryReadParameter(param, out var key, out var buffer))
-				return $"{param.GetName()}\n(valeur indisponible : module détruit)";
+				return $"{param.Name}\n(valeur indisponible : module détruit)";
 
 			var sb = new StringBuilder();
-			sb.Append(param.GetName());
+			sb.Append(param.Name);
 			sb.Append("\nKey: ").Append(key).Append(" (0x").Append(unchecked((uint)key).ToString("X8")).Append(')');
-			sb.Append("\nType: ").Append(param.GetValueType());
-			sb.Append("\nFlags: ").Append(param.GetFlags());
+			sb.Append("\nType: ").Append(param.ValueType);
+			sb.Append("\nFlags: ").Append(param.Flags);
 			sb.Append("\nBuffer: ").Append(buffer.Length).Append(" byte(s)");
 			if (buffer.Length > 0)
 				sb.Append(" — ").Append(BitConverter.ToString(buffer).Replace('-', ' '));

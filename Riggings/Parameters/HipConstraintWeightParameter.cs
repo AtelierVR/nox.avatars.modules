@@ -21,50 +21,50 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 			_rigBuilder     = rigBuilder;
 		}
 
-		public string GetName()
+		public string Name
 			=> _parameterName;
 
-		public int GetKey()
-			=> GetName().Hash();
+		public int Key
+			=> Name.Hash();
 
-		public ParameterType GetValueType()
+		public ParameterType ValueType
 			=> ParameterType.Float;
 
-		public ParameterFlags GetFlags()
+		public ParameterFlags Flags
 			=> ParameterFlags.OwnerEditable
 				| ParameterFlags.OwnerSyncsToViewers;
 		
 		// ReSharper disable Unity.PerformanceAnalysis
-		public object Get() {
-			if (!_rigBuilder) return 0f;
+		public object Value {
+			get {
+				if (!_rigBuilder) 
+					return 0f;
 
-			foreach (var layer in _rigBuilder.layers.Where(layer => layer.rig && layer.rig.name.Contains("Hip"))) {
-				if (_constraintType == ConstraintType.Position) {
-					var positionConstraint = layer.rig.GetComponentInChildren<MultiPositionConstraint>();
-					if (positionConstraint) return positionConstraint.weight;
-				} else {
-					var rotationConstraint = layer.rig.GetComponentInChildren<MultiRotationConstraint>();
-					if (rotationConstraint) return rotationConstraint.weight;
-				}
+				foreach (var layer in _rigBuilder.layers.Where(layer => layer.rig && layer.rig.name.Contains("Hip"))) 
+					if (_constraintType == ConstraintType.Position) {
+						var pc = layer.rig.GetComponentInChildren<MultiPositionConstraint>();
+						if (pc) return pc.weight;
+					} else {
+						var rc = layer.rig.GetComponentInChildren<MultiRotationConstraint>();
+						if (rc) return rc.weight;
+					}
+
+				return 0f;
 			}
+			set {
+				if (!_rigBuilder) 
+					return;
 
-			return 0f;
-		}
+				var weight = value.ToFloat();
 
-		// ReSharper disable Unity.PerformanceAnalysis
-		public void Set(object value) {
-			if (!_rigBuilder) return;
-
-			var weight = value.ToFloat();
-
-			foreach (var layer in _rigBuilder.layers.Where(layer => layer.rig && layer.rig.name.Contains("Hip"))) {
-				if (_constraintType == ConstraintType.Position) {
-					var positionConstraint                            = layer.rig.GetComponentInChildren<MultiPositionConstraint>();
-					if (positionConstraint) positionConstraint.weight = Mathf.Clamp01(weight);
-				} else {
-					var rotationConstraint                            = layer.rig.GetComponentInChildren<MultiRotationConstraint>();
-					if (rotationConstraint) rotationConstraint.weight = Mathf.Clamp01(weight);
-				}
+				foreach (var layer in _rigBuilder.layers.Where(layer => layer.rig && layer.rig.name.Contains("Hip")))
+					if (_constraintType == ConstraintType.Position) {
+						var pc = layer.rig.GetComponentInChildren<MultiPositionConstraint>();
+						if (pc) pc.weight = Mathf.Clamp01(weight);
+					} else {
+						var rc = layer.rig.GetComponentInChildren<MultiRotationConstraint>();
+						if (rc) rc.weight = Mathf.Clamp01(weight);
+					}
 			}
 		}
 	}
