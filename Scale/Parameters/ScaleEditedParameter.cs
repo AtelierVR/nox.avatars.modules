@@ -18,7 +18,7 @@ namespace Nox.CCK.Avatars.Scale {
 			=> ParameterType.Bool;
 
 		public ParameterFlags Flags
-			=> ParameterFlags.OwnerEditable; // local only: Height carries the synced value
+			=> ParameterFlags.OwnerEditable; // local only: Scale carries the synced value
 
 		public object Value {
 			get => _module.ScaleModified;

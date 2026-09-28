@@ -37,9 +37,21 @@ namespace Nox.CCK.Avatars.Scale {
 		public int Priority
 			=> 60;
 
+		/// <summary>
+		/// Effective (world) scale of the avatar, i.e. the anchor's <see cref="Transform.lossyScale"/>.
+		/// This is the synced value: unlike a live height measurement it is stable (independent of the
+		/// current animation pose) and already accounts for any scale applied by the parent rig.
+		/// Assigning it rescales the avatar so its effective scale matches the requested value; the parent
+		/// scale is divided out because <c>localScale</c> is parent-relative.
+		/// </summary>
 		public float Scale {
-			get => _runtimeAvatar.Descriptor.Anchor.transform.localScale.y;
-			set => _runtimeAvatar.Descriptor.Anchor.transform.localScale = new Vector3(value, value, value);
+			get => _runtimeAvatar.Descriptor.Anchor.transform.lossyScale.y;
+			set {
+				var anchor      = _runtimeAvatar.Descriptor.Anchor.transform;
+				var parentScale = anchor.parent ? anchor.parent.lossyScale.y : 1f;
+				var local       = Mathf.Abs(parentScale) > 0.001f ? value / parentScale : value;
+				anchor.localScale = new Vector3(local, local, local);
+			}
 		}
 
 		/// <summary>

@@ -2,6 +2,11 @@ using Nox.Avatars.Parameters;
 using Nox.CCK.Network;
 
 namespace Nox.CCK.Avatars.Scale {
+	/// <summary>
+	/// Effective (world) scale of the avatar (the anchor's <see cref="UnityEngine.Transform.lossyScale"/>),
+	/// stable and independent of the current animation pose.
+	/// This is the value synced to viewers: setting it rescales the avatar so its effective scale matches.
+	/// </summary>
 	public class ScaleParameter : IParameter {
 		private readonly ScaleAvatarModule _module;
 
@@ -18,7 +23,8 @@ namespace Nox.CCK.Avatars.Scale {
 			=> ParameterType.Float;
 
 		public ParameterFlags Flags
-			=> ParameterFlags.OwnerEditable; // local only: Height carries the synced value
+			=> ParameterFlags.OwnerEditable
+				| ParameterFlags.OwnerSyncsToViewers;
 
 		public object Value {
 			get => _module.Scale;
