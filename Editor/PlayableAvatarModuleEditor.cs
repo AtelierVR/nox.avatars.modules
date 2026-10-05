@@ -193,12 +193,13 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			controllerBox.AddToClassList("controller-box");
 
 			// Récupérer le nom du controller
-			var controllerName = "Unknown";
-			if (ctrlIndex < _module.controllers.Length && _module.controllers[ctrlIndex] != null) {
-				controllerName = _module.controllers[ctrlIndex].name;
-			}
+			var layer          = ctrlIndex < _module.controllers.Length ? _module.controllers[ctrlIndex] : null;
+			var controllerName = layer?.controller ? layer.controller.name : "Unknown";
+			var layerKey       = layer?.Key;
 
-			var header = new Label($"#{ctrlIndex} {controllerName}");
+			var header = new Label(string.IsNullOrEmpty(layerKey)
+				? $"#{ctrlIndex} {controllerName}"
+				: $"#{ctrlIndex} {layerKey} ({controllerName})");
 			header.AddToClassList("controller-header");
 			controllerBox.Add(header);
 
@@ -260,7 +261,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			var stateName = "Unknown";
 
 			try {
-				var controller = ctrlIndex < _module.controllers.Length ? _module.controllers[ctrlIndex] : null;
+				var controller = ctrlIndex < _module.controllers.Length ? _module.controllers[ctrlIndex]?.controller : null;
 
 				if (controller) {
 					// Chercher dans les clips

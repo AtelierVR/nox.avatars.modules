@@ -18,7 +18,9 @@
     "Nox.CCK.Avatars.Voice",
     "UniTask",
     "Nox.CCK.Avatars.Scale",
-    "Nox.CCK.Editor"
+    "Nox.CCK.Avatars",
+    "Nox.CCK.Editor",
+    "Nox.Avatars.Editor"
   ],
   "includePlatforms": [
     "Editor"
