@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Nox.Avatars;
@@ -9,14 +10,26 @@ using UnityEngine.Animations;
 using Logger = Nox.CCK.Utils.Logger;
 
 namespace Nox.CCK.Avatars.Playable {
-	public class PlayableAvatarModule : MonoBehaviour, IAvatarModule {
+	public class PlayableAvatarModule : MonoBehaviour, IAvatarModule, IPlayableLayerModule {
 		public static Func<RuntimeAnimatorController> GetAssetController;
 
-		public RuntimeAnimatorController[] controllers;
+		public PlayableLayer[] controllers;
 		private PlayableGraph _graph;
 		private AnimationLayerMixerPlayable _mixer;
 		public AnimatorControllerPlayable[] ControllerPlayables { get; private set; }
 		public IAvatarDescriptor Descriptor;
+
+		/// <summary>An in-flight weight blend for a single playable layer.</summary>
+		private struct LayerBlend {
+			public int   Layer;
+			public float From;
+			public float To;
+			public float Duration;
+			public float Elapsed;
+		}
+
+		private readonly List<LayerBlend> _layerBlends = new();
+		private float[] _layerWeights;
 
 		private void Start() {
 			if (!_graph.IsValid())
@@ -31,15 +44,21 @@ namespace Nox.CCK.Avatars.Playable {
 		}
 
 		private void OnDisable() {
+			_layerBlends.Clear();
 			if (!_graph.IsValid())
 				return;
 			_graph.Stop();
 		}
 
 		private void OnDestroy() {
+			_layerBlends.Clear();
 			if (!_graph.IsValid())
 				return;
 			_graph.Destroy();
+		}
+
+		private void Update() {
+			UpdateLayerBlends();
 		}
 
 		public int Priority
@@ -88,7 +107,7 @@ namespace Nox.CCK.Avatars.Playable {
 			}
 
 
-			controllers ??= Array.Empty<RuntimeAnimatorController>();
+			controllers ??= Array.Empty<PlayableLayer>();
 			if (controllers.Length == 0)
 				Logger.LogWarning("No controllers have been setup for PlayableAvatarModule, the avatar may not animate correctly.", tag: nameof(PlayableAvatarModule));
 
@@ -100,12 +119,24 @@ namespace Nox.CCK.Avatars.Playable {
 			GraphVisualizerClient.Show(_graph);
 			#endif
 
+			_layerBlends.Clear();
+			_layerWeights     = new float[controllers.Length];
 			ControllerPlayables = new AnimatorControllerPlayable[ controllers.Length ];
 			for (var i = 0; i < controllers.Length; i++) {
-				Logger.LogDebug($"Setting up controller {i} - {controllers[i]?.name ?? "null"}", controllers[i], tag: nameof(PlayableAvatarModule));
-				var ctrlPlayable = AnimatorControllerPlayable.Create(_graph, controllers[i]);
+				var layer           = controllers[i];
+				var layerController = layer?.controller;
+
+				if (!layerController) {
+					_layerWeights[i] = 0f;
+					Logger.LogWarning($"Playable layer {i} has no controller assigned (key: '{layer?.Key}'); it will be skipped.", tag: nameof(PlayableAvatarModule));
+					continue;
+				}
+
+				Logger.LogDebug($"Setting up layer {i} - {layerController.name} (key: '{layer.Key}')", layerController, tag: nameof(PlayableAvatarModule));
+				var ctrlPlayable = AnimatorControllerPlayable.Create(_graph, layerController);
 				_graph.Connect(ctrlPlayable, 0, _mixer, i);
 				_mixer.SetInputWeight(i, 1f);
+				_layerWeights[i] = 1f;
 				ControllerPlayables[i] = ctrlPlayable;
 			}
 
@@ -146,6 +177,127 @@ namespace Nox.CCK.Avatars.Playable {
 
 			return true;
 		}
+
+		#region Playable layers
+
+		/// <summary>Number of playable layers available (0 until <see cref="Setup"/> has run).</summary>
+		public int LayerCount
+			=> controllers?.Length ?? 0;
+
+		/// <summary>Whether the given layer index exists and the graph is ready.</summary>
+		public bool IsValidLayer(int layer)
+			=> _mixer.IsValid() && layer >= 0 && layer < LayerCount;
+
+		/// <summary>Current weight of a playable layer, or 0 when the layer is invalid.</summary>
+		public float GetLayerWeight(int layer)
+			=> IsValidLayer(layer) ? _layerWeights[layer] : 0f;
+
+		/// <summary>Key (name) of a playable layer, or an empty string when invalid.</summary>
+		public string GetLayerKey(int layer)
+			=> layer >= 0 && layer < LayerCount ? controllers[layer]?.Key ?? string.Empty : string.Empty;
+
+		/// <summary>Index of the first layer matching the given key, or -1 when none matches.</summary>
+		public int FindLayer(string key) {
+			if (string.IsNullOrEmpty(key) || controllers == null)
+				return -1;
+
+			for (var i = 0; i < controllers.Length; i++)
+				if (string.Equals(controllers[i]?.Key, key, StringComparison.Ordinal))
+					return i;
+
+			return -1;
+		}
+
+		/// <summary>Whether a playable layer with the given key exists.</summary>
+		public bool IsValidLayer(string key)
+			=> FindLayer(key) >= 0;
+
+		/// <summary>Current weight of the layer matching the given key, or 0.</summary>
+		public float GetLayerWeight(string key)
+			=> GetLayerWeight(FindLayer(key));
+
+		/// <summary>Sets the weight of the layer matching the given key.</summary>
+		public void SetLayerWeight(string key, float weight, float blendDuration = 0f)
+			=> SetLayerWeight(FindLayer(key), weight, blendDuration);
+
+		/// <summary>Starts (enables) the layer matching the given key.</summary>
+		public void StartLayer(string key, float blendDuration = 0f)
+			=> StartLayer(FindLayer(key), blendDuration);
+
+		/// <summary>Stops (disables) the layer matching the given key.</summary>
+		public void StopLayer(string key, float blendDuration = 0f)
+			=> StopLayer(FindLayer(key), blendDuration);
+
+		/// <summary>Starts (enables) a playable layer, blending its weight to 1.</summary>
+		public void StartLayer(int layer, float blendDuration = 0f)
+			=> SetLayerWeight(layer, 1f, blendDuration);
+
+		/// <summary>Stops (disables) a playable layer, blending its weight to 0.</summary>
+		public void StopLayer(int layer, float blendDuration = 0f)
+			=> SetLayerWeight(layer, 0f, blendDuration);
+
+		/// <summary>
+		/// Sets the weight of a playable layer, optionally blending to it over <paramref name="blendDuration"/> seconds.
+		/// Layer 0 is the base layer and is always kept at full weight.
+		/// </summary>
+		public void SetLayerWeight(int layer, float weight, float blendDuration = 0f) {
+			if (!IsValidLayer(layer)) {
+				Logger.LogWarning($"Cannot set weight of playable layer {layer}: invalid layer index (valid range 0..{LayerCount - 1}).", tag: nameof(PlayableAvatarModule));
+				return;
+			}
+
+			// The base layer must always stay at full weight, like VRChat does.
+			if (layer == 0)
+				weight = 1f;
+
+			weight = Mathf.Clamp01(weight);
+
+			// Drop any in-flight blend that was already targeting this layer.
+			for (var i = _layerBlends.Count - 1; i >= 0; i--)
+				if (_layerBlends[i].Layer == layer)
+					_layerBlends.RemoveAt(i);
+
+			if (blendDuration <= 0f || Mathf.Approximately(_layerWeights[layer], weight)) {
+				ApplyLayerWeight(layer, weight);
+				return;
+			}
+
+			_layerBlends.Add(new LayerBlend {
+				Layer    = layer,
+				From     = _layerWeights[layer],
+				To       = weight,
+				Duration = blendDuration,
+				Elapsed  = 0f
+			});
+		}
+
+		private void ApplyLayerWeight(int layer, float weight) {
+			if (!IsValidLayer(layer))
+				return;
+			_layerWeights[layer] = weight;
+			_mixer.SetInputWeight(layer, weight);
+		}
+
+		private void UpdateLayerBlends() {
+			if (_layerBlends.Count == 0 || !_mixer.IsValid())
+				return;
+
+			var deltaTime = Time.deltaTime;
+			for (var i = _layerBlends.Count - 1; i >= 0; i--) {
+				var blend = _layerBlends[i];
+				blend.Elapsed += deltaTime;
+
+				var t = blend.Duration <= 0f ? 1f : Mathf.Clamp01(blend.Elapsed / blend.Duration);
+				ApplyLayerWeight(blend.Layer, Mathf.Lerp(blend.From, blend.To, t));
+
+				if (t >= 1f)
+					_layerBlends.RemoveAt(i);
+				else
+					_layerBlends[i] = blend;
+			}
+		}
+
+		#endregion
 
 		public static bool Check(IAvatarDescriptor _)
 			=> true;
