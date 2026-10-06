@@ -17,7 +17,8 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 		private VisualElement        _playablesContainer;
 		private PropertyField        _controllersProperty;
 
-		private Dictionary<string, LayerTracker> _layerTrackers = new();
+		private Dictionary<string, LayerTracker> _layerTrackers           = new();
+		private Dictionary<int, ControllerTracker> _controllerTrackers = new();
 		private bool                             _isPlaying;
 
 		// Structure pour tracker les valeurs des layers
@@ -26,6 +27,12 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			public Label StateLabel;
 			public float LastWeight;
 			public int   LastStateHash;
+		}
+
+		// Structure pour tracker le poids global d'un controller playable
+		private class ControllerTracker {
+			public Label WeightLabel;
+			public float LastWeight;
 		}
 
 		public override VisualElement CreateInspectorGUI() {
@@ -142,6 +149,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			} else if (state == PlayModeStateChange.ExitingPlayMode) {
 				_isPlaying = false;
 				_layerTrackers.Clear();
+				_controllerTrackers.Clear();
 				UpdateRuntimeSection();
 			}
 		}
@@ -152,6 +160,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 				_infoLabel.style.display = DisplayStyle.Flex;
 				_playablesContainer.Clear();
 				_layerTrackers.Clear();
+				_controllerTrackers.Clear();
 				return;
 			}
 
@@ -178,6 +187,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			// Créer l'interface pour chaque controller
 			_playablesContainer.Clear();
 			_layerTrackers.Clear();
+			_controllerTrackers.Clear();
 
 			for (var ctrlIndex = 0; ctrlIndex < _module.ControllerPlayables.Length; ctrlIndex++) {
 				var controllerPlayable = _module.ControllerPlayables[ctrlIndex];
@@ -188,27 +198,50 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			}
 		}
 
-		private void CreateControllerBox(AnimatorControllerPlayable controllerPlayable, int ctrlIndex) {
-			var controllerBox = new VisualElement();
-			controllerBox.AddToClassList("controller-box");
+		private void CreateControllerBox(AnimatorControllerPlayable playable, int ctrl) {
+			var box = new VisualElement();
+			box.AddToClassList("controller-box");
 
 			// Récupérer le nom du controller
-			var layer          = ctrlIndex < _module.controllers.Length ? _module.controllers[ctrlIndex] : null;
-			var controllerName = layer?.controller ? layer.controller.name : "Unknown";
-			var layerKey       = layer?.Key;
+			var layer = ctrl < _module.controllers.Length 
+				? _module.controllers[ctrl] 
+				: null;
+			var name = layer?.controller 
+				? layer.controller.name 
+				: "Unknown";
+			var key       = layer?.Key;
 
-			var header = new Label(string.IsNullOrEmpty(layerKey)
-				? $"#{ctrlIndex} {controllerName}"
-				: $"#{ctrlIndex} {layerKey} ({controllerName})");
+			var header = new Label(string.IsNullOrEmpty(key)
+				? $"#{ctrl} {name}"
+				: $"#{ctrl} {key} ({name})");
 			header.AddToClassList("controller-header");
-			controllerBox.Add(header);
 
-			var layerCount = controllerPlayable.GetLayerCount();
+			// Poids du controller playable (poids du mixer, piloté par PlayableLayerControl),
+			// aligné à droite du header.
+			float weight = _module.GetLayerWeight(ctrl);
+			var   label  = new Label($"{weight:F3}");
+			label.AddToClassList("controller-weight");
+
+			var row = new VisualElement();
+			row.AddToClassList("controller-header-row");
+			row.style.flexDirection  = FlexDirection.Row;
+			row.style.justifyContent = Justify.SpaceBetween;
+			row.style.alignItems     = Align.Center;
+			row.Add(header);
+			row.Add(label);
+			box.Add(row);
+
+			_controllerTrackers[ctrl] = new ControllerTracker {
+				WeightLabel = label,
+				LastWeight  = weight
+			};
+
+			var layerCount = playable.GetLayerCount();
 
 			for (var layerIndex = 0; layerIndex < layerCount; layerIndex++)
-				CreateLayerRow(controllerBox, controllerPlayable, ctrlIndex, layerIndex);
+				CreateLayerRow(box, playable, ctrl, layerIndex);
 
-			_playablesContainer.Add(controllerBox);
+			_playablesContainer.Add(box);
 		}
 
 		private void CreateLayerRow(VisualElement parent, AnimatorControllerPlayable controllerPlayable, int ctrlIndex, int layerIndex) {
@@ -236,8 +269,8 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			stateLabel.AddToClassList("layer-state");
 			row.Add(stateLabel);
 
-			// Weight
-			float weight      = controllerPlayable.GetLayerWeight(layerIndex);
+			float weight      = controllerPlayable.GetLayerWeight(layerIndex)
+				* _module.GetLayerWeight(ctrlIndex);
 			var   weightLabel = new Label($"{weight:F3}");
 			weightLabel.AddToClassList("layer-weight");
 			row.Add(weightLabel);
@@ -297,11 +330,22 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 		}
 
 		private void UpdatePlayableValues() {
-			if (!_isPlaying || _module.ControllerPlayables == null || _layerTrackers.Count == 0)
+			if (!_isPlaying || _module.ControllerPlayables == null)
 				return;
 
 			for (var ctrlIndex = 0; ctrlIndex < _module.ControllerPlayables.Length; ctrlIndex++) {
+				// Poids global du controller playable (modifiable via PlayableLayerControl)
+				if (_controllerTrackers.TryGetValue(ctrlIndex, out var controllerTracker)) {
+					float controllerWeight = _module.GetLayerWeight(ctrlIndex);
+					if (System.Math.Abs(controllerTracker.LastWeight - controllerWeight) > 0.001f) {
+						controllerTracker.WeightLabel.text = $"{controllerWeight:F3}";
+						controllerTracker.LastWeight       = controllerWeight;
+					}
+				}
+
 				var controllerPlayable = _module.ControllerPlayables[ctrlIndex];
+				if (!controllerPlayable.IsValid())
+					continue;
 
 				var layerCount = controllerPlayable.GetLayerCount();
 
@@ -310,8 +354,9 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 					if (!_layerTrackers.TryGetValue(trackerKey, out var tracker))
 						continue;
 
-					// Récupérer les valeurs actuelles
-					float weight       = controllerPlayable.GetLayerWeight(layerIndex);
+					// Récupérer les valeurs actuelles (poids effectif = mixer × layer interne)
+					float weight       = controllerPlayable.GetLayerWeight(layerIndex)
+						* _module.GetLayerWeight(ctrlIndex);
 					var   currentState = controllerPlayable.GetCurrentAnimatorStateInfo(layerIndex);
 					int   stateHash    = currentState.shortNameHash;
 

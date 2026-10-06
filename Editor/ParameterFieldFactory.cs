@@ -1,10 +1,7 @@
 using System;
 using System.Text;
-using Nox.CCK;
 using Nox.CCK.Avatars.Parameters;
 using Nox.Avatars.Parameters;
-using UnityEditor.UIElements;
-using UnityEngine;
 using UnityEngine.UIElements;
 using Vector3 = UnityEngine.Vector3;
 using Quaternion = UnityEngine.Quaternion;
@@ -86,7 +83,7 @@ namespace Nox.CCK.Avatars.Modules.Editor
                 case ParameterType.Bool:
                     if (field is Toggle toggle)
                         toggle.RegisterValueChangedCallback(evt =>
-                            onValueChanged(BitConverter.GetBytes(evt.newValue)));
+                            onValueChanged(Converter.ToBytes(evt.newValue)));
                     break;
 
                 case ParameterType.Byte:
@@ -97,35 +94,31 @@ namespace Nox.CCK.Avatars.Modules.Editor
                 case ParameterType.Long:
                 case ParameterType.ULong:
                     if (field is IntegerField intField)
-                    {
-                        intField.RegisterValueChangedCallback(evt =>
-                        {
-                            byte[] bytes = type switch
-                            {
-                                ParameterType.Byte   => new[] { ClampByte(evt.newValue) },
-                                ParameterType.Short  => BitConverter.GetBytes((short)ClampShort(evt.newValue)),
-                                ParameterType.UShort => BitConverter.GetBytes((ushort)ClampUShort(evt.newValue)),
-                                ParameterType.Int    => BitConverter.GetBytes(ClampInt(evt.newValue)),
-                                ParameterType.UInt   => BitConverter.GetBytes((uint)ClampUInt(evt.newValue)),
-                                ParameterType.Long   => BitConverter.GetBytes(ClampLong(evt.newValue)),
-                                ParameterType.ULong  => BitConverter.GetBytes((ulong)ClampULong(evt.newValue)),
+                        intField.RegisterValueChangedCallback(evt => {
+                            var bytes = type switch {
+                                ParameterType.Byte   => Converter.ToBytes(ClampByte(evt.newValue)),
+                                ParameterType.Short  => Converter.ToBytes(ClampShort(evt.newValue)),
+                                ParameterType.UShort => Converter.ToBytes(ClampUShort(evt.newValue)),
+                                ParameterType.Int    => Converter.ToBytes(ClampInt(evt.newValue)),
+                                ParameterType.UInt   => Converter.ToBytes(ClampUInt(evt.newValue)),
+                                ParameterType.Long   => Converter.ToBytes(ClampLong(evt.newValue)),
+                                ParameterType.ULong  => Converter.ToBytes(ClampULong(evt.newValue)),
                                 _                    => Array.Empty<byte>()
                             };
                             onValueChanged(bytes);
                         });
-                    }
                     break;
 
                 case ParameterType.Float:
                     if (field is FloatField floatField)
                         floatField.RegisterValueChangedCallback(evt =>
-                            onValueChanged(BitConverter.GetBytes((float)evt.newValue)));
+                            onValueChanged(Converter.ToBytes(evt.newValue)));
                     break;
 
                 case ParameterType.Double:
                     if (field is DoubleField doubleField)
                         doubleField.RegisterValueChangedCallback(evt =>
-                            onValueChanged(BitConverter.GetBytes((double)evt.newValue)));
+                            onValueChanged(Converter.ToBytes(evt.newValue)));
                     break;
 
                 case ParameterType.String:

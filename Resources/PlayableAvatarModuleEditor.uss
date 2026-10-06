@@ -33,6 +33,25 @@
     margin-bottom: 5px;
 }
 
+.controller-header-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.controller-header-row > .controller-header {
+    margin-bottom: 0;
+}
+
+.controller-weight {
+    min-width: 25px;
+    overflow: hidden;
+    flex-grow: 0;
+    -unity-text-align: middle-right;
+    -unity-font-definition: resource('fonts/Ubuntu_Mono/UbuntuMono-Regular');
+    margin-left: 12px;
+}
+
 .layer-row {
     flex-direction: row;
     padding: 3px 0;
