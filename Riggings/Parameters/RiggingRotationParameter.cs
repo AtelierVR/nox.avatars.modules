@@ -27,8 +27,17 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 		public ParameterType ValueType
 			=> ParameterType.Quaternion;
 
+		/// <summary>
+		/// Owner to viewers: this rotation <b>is</b> the tracking target the viewers replay on their rig, so it
+		/// must be emitted. <see cref="ParameterFlags.Persistent"/> alone is not a sync flag: the value then never
+		/// leaves the owner's client, the remote rig keeps its own (stale) target while
+		/// <c>tracking/&lt;bone&gt;/active</c> reports the bone as tracked, and the solver pulls the avatar into a
+		/// wrong pose.
+		/// </summary>
 		public ParameterFlags Flags
-			=> ParameterFlags.Persistent;
+			=> ParameterFlags.Persistent
+				| ParameterFlags.OwnerEditable
+				| ParameterFlags.OwnerSyncsToViewers;
 
 		public object Value {
 			get => _module != null 
