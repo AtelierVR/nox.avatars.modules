@@ -196,6 +196,20 @@ namespace Nox.CCK.Avatars.Playable {
 		public string GetLayerKey(int layer)
 			=> layer >= 0 && layer < LayerCount ? controllers[layer]?.Key ?? string.Empty : string.Empty;
 
+		/// <summary>
+		/// Rôle standard déclaré par l'avatar pour cette couche, ou une chaîne vide quand la clé est un nom
+		/// libre / un nom d'asset (voir <see cref="PlayableLayerNaming"/>).
+		/// </summary>
+		public string GetLayerRole(int layer) {
+			if (layer < 0 || layer >= LayerCount)
+				return string.Empty;
+
+			var naming = controllers[layer]?.naming ?? PlayableLayerNaming.Controller;
+			return naming is PlayableLayerNaming.Controller or PlayableLayerNaming.Custom
+				? string.Empty
+				: naming.ToString();
+		}
+
 		/// <summary>Index of the first layer matching the given key, or -1 when none matches.</summary>
 		public int FindLayer(string key) {
 			if (string.IsNullOrEmpty(key) || controllers == null)
@@ -238,17 +252,14 @@ namespace Nox.CCK.Avatars.Playable {
 
 		/// <summary>
 		/// Sets the weight of a playable layer, optionally blending to it over <paramref name="blendDuration"/> seconds.
-		/// Layer 0 is the base layer and is always kept at full weight.
+		/// Layer 0 is the base layer but, unlike VRChat, it can also be blended down like any other layer
+		/// (e.g. to reveal a T-pose/calibration pose on top of it).
 		/// </summary>
 		public void SetLayerWeight(int layer, float weight, float blendDuration = 0f) {
 			if (!IsValidLayer(layer)) {
 				Logger.LogWarning($"Cannot set weight of playable layer {layer}: invalid layer index (valid range 0..{LayerCount - 1}).", tag: nameof(PlayableAvatarModule));
 				return;
 			}
-
-			// The base layer must always stay at full weight, like VRChat does.
-			if (layer == 0)
-				weight = 1f;
 
 			weight = Mathf.Clamp01(weight);
 

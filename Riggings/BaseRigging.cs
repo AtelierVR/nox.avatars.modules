@@ -50,9 +50,71 @@ namespace Nox.CCK.Avatars.Rigging {
 
 		public abstract bool SetupParameters(BaseRigging module);
 
-		public abstract bool IsActive(HumanBodyBones bone);
+		// Two independent channels feeding the same bones:
+		//  - controller channel (_controllerActive): what the player controller (Desktop/XR/Remote) wants;
+		//  - avatar channel (_trackingOverride): what a state behavior (TrackingControl) forces, or nothing.
+		// The avatar override wins while it is set; otherwise the controller's value applies, and when neither
+		// was set we fall back to the backend's real state (e.g. before a controller wrote anything).
+		private readonly Dictionary<HumanBodyBones, bool> _active = new();
+		private readonly Dictionary<HumanBodyBones, bool> _tracking = new();
 
-		public abstract void SetActive(HumanBodyBones bone, bool active);
+		/// <summary>
+		/// Effective state of the bone: the avatar's tracking override when one is set, otherwise the
+		/// controller's choice, otherwise the backend's real state.
+		/// </summary>
+		public bool IsActive(HumanBodyBones bone)
+			=> _tracking.TryGetValue(bone, out var tracking) ? tracking
+				: _active.TryGetValue(bone, out var active) ? active
+					: GetActive(bone);
+
+		/// <summary>Controller channel: the player controller declares whether it drives the bone.</summary>
+		public void SetActive(HumanBodyBones bone, bool active) {
+			_active[bone] = active;
+			ApplyActive(bone, IsActive(bone));
+		}
+
+		/// <summary>
+		/// Avatar channel: overrides tracking for the bone (<see cref="RiggingTrackingMode.Tracking"/> = follow IK,
+		/// <see cref="RiggingTrackingMode.Animation"/> = animation), or clears the override with
+		/// <see cref="RiggingTrackingMode.Normal"/> to let the controller decide again.
+		/// </summary>
+		public void SetTracking(HumanBodyBones bone, RiggingTrackingMode mode) {
+			if (mode == RiggingTrackingMode.Normal)
+				_tracking.Remove(bone);
+			else
+				_tracking[bone] = mode == RiggingTrackingMode.Tracking;
+
+			ApplyActive(bone, IsActive(bone));
+		}
+
+		/// <summary>
+		/// Avatar channel read: whether the avatar currently requests tracking for the bone (its override is
+		/// <see cref="RiggingTrackingMode.Tracking"/>). <c>false</c> when there is no override or the override
+		/// is <see cref="RiggingTrackingMode.Animation"/>.
+		/// </summary>
+		public bool IsTracking(HumanBodyBones bone)
+			=> _tracking.TryGetValue(bone, out var tracking) && tracking;
+
+		/// <summary>
+		/// Avatar channel mode for the bone: <see cref="RiggingTrackingMode.Animation"/>/<see cref="RiggingTrackingMode.Tracking"/>
+		/// when the avatar set an override, <see cref="RiggingTrackingMode.Normal"/> when it has none.
+		/// </summary>
+		public RiggingTrackingMode GetTracking(HumanBodyBones bone)
+			=> _tracking.TryGetValue(bone, out var tracking)
+				? (tracking ? RiggingTrackingMode.Tracking : RiggingTrackingMode.Animation)
+				: RiggingTrackingMode.Normal;
+
+		/// <summary>Backend read of the bone's real active state (used before any channel wrote).</summary>
+		protected abstract bool GetActive(HumanBodyBones bone);
+
+		/// <summary>
+		/// Le contrôleur prend la main sur la racine (voir <see cref="IRigging.SetExternalRootControl"/>).
+		/// Les backends qui pilotent la racine eux-mêmes (FinalIK : locomotion + VRIKRootController) surchargent.
+		/// </summary>
+		public virtual void SetExternalRootControl(bool external) { }
+
+		/// <summary>Backend write of the bone's active state on the actual rig (RigLayer.active, VRIK weights...).</summary>
+		protected abstract void ApplyActive(HumanBodyBones bone, bool active);
 
 		public bool TryGetPart(ushort id, out IRigPart part) {
 			for (var i = 0; i < Parts.Count; i++) {

@@ -36,9 +36,22 @@ namespace Nox.CCK.Avatars.Playable {
 		/// Calibration layer: poses used to (re)align the rig, such as a T-Pose or A-Pose.
 		/// Starting it overrides the limbs to a known reference pose so the IK/full-body
 		/// tracking can be recalibrated; stopping it (blending back to 0) returns control
-		/// to locomotion. This is the layer to start when you want to force a T-Pose.
+		/// to locomotion. Prefer the <see cref="Pose"/> layer, which groups every whole-body
+		/// pose (calibration included) behind a single integer; this role is kept for avatars
+		/// reduced to a standalone T-Pose layer.
 		/// </summary>
 		Calibration,
+
+		/// <summary>
+		/// Pose layer: the avatar's whole-body poses (normal, presentation, calibration, sitting...)
+		/// selected by an integer parameter — see <c>AvatarPose</c> in
+		/// <c>Nox.Avatars.StateMachines</c>. Only one such layer should exist per avatar and it replaces
+		/// the dedicated calibration layer: its "normal" state does nothing, so the game can ask for a
+		/// calibration (T-pose) pose at any time by setting the parameter, and the layer itself decides
+		/// which tracking it cuts (<c>TrackingControl</c>) and which layers it stops
+		/// (<c>PlayableLayerControl</c>).
+		/// </summary>
+		Pose,
 
 		/// <summary>
 		/// FX layer: non-movement show such as face expressions (blinking, visemes),

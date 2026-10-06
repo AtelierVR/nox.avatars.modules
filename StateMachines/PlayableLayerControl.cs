@@ -27,14 +27,16 @@ namespace Nox.CCK.Avatars.StateMachines {
 	/// leaving a state, targeting it by its key (name) instead of a raw index.
 	/// </summary>
 	/// <remarks>
-	/// Useful to force a layer such as <c>Calibration</c> (T-Pose) while in a state, then
+	/// Useful to force a layer such as <c>Pose</c> (T-Pose) while in a state, then
 	/// release it on exit. The layer is resolved once during setup by looking up its key on
-	/// the avatar's playable layer module. Layer 0 (base) is always kept at full weight and
-	/// cannot be stopped.
+	/// the avatar's playable layer module, or from the state's Animator when the behavior
+	/// was never set up by the module (the controllers played by the playable avatar
+	/// module are not always returned by <c>Animator.GetBehaviours</c>).
+	/// Any layer, including layer 0 (base), can be started/stopped.
 	/// </remarks>
 	public class PlayableLayerControl : BaseStateMachine {
 		[Header("Target")]
-		[Tooltip("Key (name) of the playable layer to control, as set on the PlayableAvatarModule (Default, Locomotion, Calibration, FX or a custom name).")]
+		[Tooltip("Key (name) of the playable layer to control, as set on the PlayableAvatarModule (Default, Locomotion, Calibration, Pose, FX or a custom name).")]
 		public string layerKey;
 
 		/// <summary>
@@ -71,28 +73,62 @@ namespace Nox.CCK.Avatars.StateMachines {
 				.GetModules<IPlayableLayerModule>()
 				.FirstOrDefault();
 
-			if (_layers == null)
-				Logger.LogWarning($"{nameof(PlayableLayerControl)} could not find a playable layer module on the avatar; it will do nothing.", this);
-			else if (string.IsNullOrEmpty(layerKey))
-				Logger.LogWarning($"{nameof(PlayableLayerControl)} has no layer key set; it will do nothing.", this);
-			else if ((_target = _layers.FindLayer(layerKey)) < 0)
-				Logger.LogWarning($"{nameof(PlayableLayerControl)} targets layer key '{layerKey}' but no playable layer has this name.", this);
+			ResolveTarget();
 
 			return base.Setup(runtime);
 		}
 
 		public override void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
 			base.OnStateEnter(animator, stateInfo, layerIndex);
-			Apply(onEnter, enterWeight, enterBlendDuration, "enter");
+			Apply(animator, onEnter, enterWeight, enterBlendDuration, "enter");
 		}
 
 		public override void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
 			base.OnStateExit(animator, stateInfo, layerIndex);
-			Apply(onExit, exitWeight, exitBlendDuration, "exit");
+			Apply(animator, onExit, exitWeight, exitBlendDuration, "exit");
 		}
 
-		private void Apply(PlayableLayerAction action, float weight, float duration, string phase) {
-			if (_layers == null || _target < 0 || action == PlayableLayerAction.None)
+		/// <summary>
+		/// Résout la couche ciblée. Le module de couches est d'abord demandé à l'avatar (via
+		/// <see cref="Setup"/> ou le descripteur), puis retrouvé depuis l'Animator de l'état : les controllers
+		/// joués par le module playable ne passent pas tous par <see cref="Setup"/>. Rien n'est journalisé
+		/// depuis l'exécution (log: false) pour ne pas spammer à chaque entrée/sortie d'état.
+		/// </summary>
+		private void ResolveTarget(Animator animator = null, bool log = true) {
+			if (_layers == null)
+				_layers = RuntimeAvatar?.Descriptor?
+					.GetModules<IPlayableLayerModule>()
+					.FirstOrDefault();
+
+			if (_layers == null && animator) {
+				var go = animator.gameObject;
+				_layers = go.GetComponentInParent<IPlayableLayerModule>(true)
+				          ?? go.GetComponentInChildren<IPlayableLayerModule>(true);
+			}
+
+			if (_layers == null) {
+				if (log)
+					Logger.LogWarning($"{nameof(PlayableLayerControl)} could not find a playable layer module on the avatar; it will do nothing.", this);
+				return;
+			}
+
+			if (string.IsNullOrEmpty(layerKey)) {
+				if (log && _target < 0)
+					Logger.LogWarning($"{nameof(PlayableLayerControl)} has no layer key set; it will do nothing.", this);
+				return;
+			}
+
+			_target = _layers.FindLayer(layerKey);
+			if (_target < 0 && log)
+				Logger.LogWarning($"{nameof(PlayableLayerControl)} targets layer key '{layerKey}' but no playable layer has this name.", this);
+		}
+
+		private void Apply(Animator animator, PlayableLayerAction action, float weight, float duration, string phase) {
+			if (action == PlayableLayerAction.None)
+				return;
+
+			ResolveTarget(animator, log: false);
+			if (_layers == null || _target < 0)
 				return;
 
 			switch (action) {

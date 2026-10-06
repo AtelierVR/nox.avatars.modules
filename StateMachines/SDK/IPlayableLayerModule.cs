@@ -23,6 +23,15 @@ namespace Nox.Avatars.StateMachines {
 		public string GetLayerKey(int layer);
 
 		/// <summary>
+		/// Returns the standard role declared by the avatar for a playable layer ("Default", "Locomotion",
+		/// "Calibration", "Pose", "FX"), or an empty string when the layer has none (free-form or asset-name key).
+		/// <para/>
+		/// Unlike <see cref="GetLayerKey"/> this does not depend on how the key is written: use it to find
+		/// a layer by purpose (e.g. the calibration/T-pose layer) whatever the avatar named it.
+		/// </summary>
+		public string GetLayerRole(int layer);
+
+		/// <summary>
 		/// Finds the index of the first playable layer whose key matches <paramref name="key"/>,
 		/// or -1 when none matches.
 		/// </summary>

@@ -32,6 +32,19 @@ namespace Nox.CCK.Avatars.Parameters {
 		public AvatarParameters parameters;
 		public IRuntimeAvatar   Runtime;
 
+		/// <summary>
+		/// Paramètres standards toujours exposés, même quand l'Animator de l'avatar ne les déclare
+		/// pas : garantit que <see cref="GetParameter(string)"/> ne renvoie jamais <c>null</c> pour
+		/// ces noms (VelocityX/Y/Z = Float 0, Grounded = Bool false, Pose = Int 0).
+		/// </summary>
+		public static readonly (string Name, ParameterType Type, object Default)[] DefaultParameters = {
+			("VelocityX", ParameterType.Float, 0f),
+			("VelocityY", ParameterType.Float, 0f),
+			("VelocityZ", ParameterType.Float, 0f),
+			("Grounded",  ParameterType.Bool,  false),
+			("Pose",      ParameterType.Int,   0)
+		};
+
 		private readonly List<IParameter>              _paramList = new();
 		private readonly Dictionary<string, IParameter> _byName   = new();
 		private readonly Dictionary<int,    IParameter> _byHash   = new();
@@ -97,6 +110,22 @@ namespace Nox.CCK.Avatars.Parameters {
 			foreach (var parameter in animator.parameters) {
 				var entry = entries.FirstOrDefault(e => e.GetNameHash() == parameter.nameHash);
 				RegisterParameter(new AnimatorBaseParameter { Animator = animator, Parameter = parameter, Entry = entry });
+			}
+
+			RegisterDefaultParameters();
+		}
+
+		/// <summary>
+		/// Enregistre les <see cref="DefaultParameters"/> absents de l'Animator afin que
+		/// <see cref="GetParameter(string)"/> ne renvoie jamais <c>null</c> pour ces noms standards.
+		/// Les paramètres réellement déclarés par l'avatar gardent la priorité (enregistrés d'abord).
+		/// </summary>
+		private void RegisterDefaultParameters() {
+			foreach (var (name, type, defaultValue) in DefaultParameters) {
+				if (_byName.ContainsKey(name))
+					continue;
+
+				RegisterParameter(new DefaultParameter(name, type, defaultValue));
 			}
 		}
 
