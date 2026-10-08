@@ -3,8 +3,12 @@ using Nox.CCK.Network;
 
 namespace Nox.CCK.Avatars.Scale {
 	/// <summary>
-	/// Live distance from the anchor (feet) to the head bone (see <see cref="ScaleAvatarModule.HeadHeight"/>).
-	/// Derived from the rig, so it is read-only and identical on every client.
+	/// Distance from the anchor (feet) to the head bone, in metres, at the current scale
+	/// (see <see cref="ScaleAvatarModule.HeadHeight"/>).
+	/// <para>
+	/// A proportion of the <b>model</b> measured in its rest pose: it is the same value on every client and it
+	/// does not follow the animation or the trackers.
+	/// </para>
 	/// </summary>
 	public class HeadHeightParameter : IParameter {
 		private readonly ScaleAvatarModule _module;

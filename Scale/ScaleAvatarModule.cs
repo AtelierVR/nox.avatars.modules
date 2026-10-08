@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -15,11 +14,24 @@ using Logger = Nox.CCK.Utils.Logger;
 namespace Nox.CCK.Avatars.Scale {
 	[Gizmos("cck.avatars.scale")]
 	public class ScaleAvatarModule : MonoBehaviour, IScaleAvatarModule, IGizmos {
-		[NonSerialized]
-		public float InitialHeight = 1.7f;
+		/// <summary>
+		/// Base height of the model, in metres and without its scale: what the avatar would measure with a scale
+		/// of 1. Measured once at <see cref="Setup"/> on the rest pose (see <see cref="MeasureInitialHeights"/>).
+		/// The real height is <c>InitialHeight × Scale</c> (see <see cref="Height"/>).
+		/// </summary>
+		public float InitialHeight { get; private set; } = 1.7f;
 
-		[NonSerialized]
-		public float InitialScale = 1f;
+		/// <summary>
+		/// Scale the avatar was loaded with, used by <see cref="ScaleModified"/> to tell whether its size has
+		/// been changed since. This is <b>not</b> a size (see <see cref="InitialHeight"/>).
+		/// </summary>
+		public float InitialScale { get; private set; } = 1f;
+
+		/// <summary>Head bone height at rest, without scale (see <see cref="HeadHeight"/>).</summary>
+		public float InitialHeadHeight { get; private set; } = 1.5f;
+
+		/// <summary>Eye height at rest, without scale (see <see cref="EyeHeight"/>).</summary>
+		public float InitialEyeHeight { get; private set; } = 1.6f;
 
 
 		private readonly List<IParameter> _parameters    = new();
@@ -100,36 +112,132 @@ namespace Nox.CCK.Avatars.Scale {
 			return true;
 		}
 
-		/// <summary>Live distance from the anchor (feet) to the head bone.</summary>
+		/// <summary>
+		/// Head bone height above the feet, in metres, at the current scale (<c>InitialHeadHeight × Scale</c>).
+		/// A property of the model: it does not follow the animation or the trackers (see
+		/// <see cref="RealHeadHeight"/>).
+		/// </summary>
 		public float HeadHeight
-			=> TryMeasure(out var anchor, out var head, out _)
-				? Vector3.Distance(anchor, head)
-				: 0f;
-
-		/// <summary>Live distance from the anchor (feet) to the camera (eye) point.</summary>
-		public float EyeHeight
-			=> TryMeasure(out var anchor, out _, out var camera)
-				? Vector3.Distance(anchor, camera)
-				: 0f;
+			=> InitialHeadHeight * Scale;
 
 		/// <summary>
-		/// Live avatar height, estimated from the anchor (feet) as
-		/// <c>distance(anchor, head bone) + 2 * distance(head bone, camera)</c>:
-		/// the head bone -> camera distance is mirrored past the eyes to reach the top of the skull.
+		/// Eye height above the feet, in metres, at the current scale (<c>InitialEyeHeight × Scale</c>).
+		/// A property of the model (see <see cref="RealEyeHeight"/> for the live pose).
+		/// <para>
+		/// Assigning it resizes the avatar so its eyes land at that height, like <see cref="Height"/> and
+		/// <see cref="Scale"/>.
+		/// </para>
 		/// </summary>
-		public float MeasuredHeight
+		public float EyeHeight {
+			get => InitialEyeHeight * Scale;
+			set => Scale = value / InitialEyeHeight;
+		}
+
+		#region Real (live) measurements
+
+		// Live measurements: they follow the current pose (animation, IK, trackers).
+
+		/// <summary>
+		/// Live height of the avatar, in metres: <c>distance(feet, head bone) + 2 ×
+		/// distance(head bone, camera point)</c>, the eye offset being mirrored above the eyes to reach the top
+		/// of the skull. Follows the current pose, unlike <see cref="Height"/>.
+		/// </summary>
+		public float RealHeight
 			=> TryMeasure(out var anchor, out var head, out var camera)
 				? Vector3.Distance(anchor, head) + 2f * Vector3.Distance(head, camera)
 				: InitialHeight;
 
-		private float RuntimeHeight() {
-			if (!TryMeasure(out _, out _, out _))
-				return InitialHeight;
+		/// <summary>Live height of the head bone above the feet, in metres.</summary>
+		public float RealHeadHeight
+			=> TryMeasure(out var anchor, out var head, out _)
+				? Vector3.Distance(anchor, head)
+				: 0f;
 
-			// The measurement is in world space, divide by the current scale to get the base height
-			var anchor     = _runtimeAvatar.Descriptor.Anchor.transform;
-			var lossyScale = anchor.lossyScale.y;
-			return lossyScale > 0.001f ? MeasuredHeight / lossyScale : MeasuredHeight;
+		/// <summary>Live height of the eyes above the feet, in metres.</summary>
+		public float RealEyeHeight
+			=> TryMeasure(out var anchor, out _, out var camera)
+				? Vector3.Distance(anchor, camera)
+				: 0f;
+
+		#endregion
+
+		/// <summary>
+		/// Measures the three base heights of the model (total, head bone, eyes), in metres and without scale,
+		/// once at <see cref="Setup"/>. They are measured on the skeleton's rest pose (the bind poses of the mesh,
+		/// i.e. the file's T-pose), falling back to the live pose when the model exposes no usable bind pose.
+		/// </summary>
+		private void MeasureInitialHeights(IAvatarDescriptor descriptor) {
+			var anchor = descriptor != null && descriptor.Anchor ? descriptor.Anchor.transform : null;
+
+			// The default values are kept when the skeleton is not usable.
+			if (!TryMeasureSkeleton(out var head, out var eyeOffset))
+				return;
+
+			// The measurement is in world space: divide by the current scale to get the base height.
+			var scale = anchor ? Mathf.Abs(anchor.lossyScale.y) : 1f;
+			if (scale <= 0.001f)
+				scale = 1f;
+
+			var headHeight = anchor ? Vector3.Distance(anchor.position, head) : 0f;
+			var eyeLift    = eyeOffset.magnitude;
+
+			InitialHeight     = (headHeight + 2f * eyeLift) / scale;
+			InitialHeadHeight = headHeight / scale;
+			InitialEyeHeight  = (headHeight + eyeLift) / scale;
+		}
+
+		/// <summary>
+		/// The two skeleton measurements, in world space: head bone position and head → eye offset. The head is
+		/// read on the rest pose (see <see cref="MeasureInitialHeights"/>), falling back to its live position.
+		/// </summary>
+		private bool TryMeasureSkeleton(out Vector3 headPosition, out Vector3 eyeOffset) {
+			headPosition = default;
+			eyeOffset    = default;
+
+			var descriptor = _runtimeAvatar?.Descriptor ?? GetComponentInParent<IAvatarDescriptor>();
+			if (descriptor == null || !descriptor.Anchor)
+				return false;
+
+			var cameraModule = descriptor.GetModules<ICameraModule>().FirstOrDefault()
+				?? descriptor.Anchor.GetComponentsInChildren<ICameraModule>(true).FirstOrDefault();
+
+			var head = cameraModule?.GetAnchor();
+			if (!head && descriptor.Animator)
+				head = descriptor.Animator.GetBoneTransform(HumanBodyBones.Head);
+			if (!head)
+				return false;
+
+			eyeOffset = cameraModule != null ? cameraModule.GetOffset() : Vector3.zero;
+			if (TryRestPosition(descriptor.Anchor, head, out headPosition))
+				return true;
+
+			headPosition = head.position;
+			return true;
+		}
+
+		/// <summary>
+		/// Position of <paramref name="bone"/> on the rest pose, in world space, read from the bind poses of the
+		/// meshes using it: the inverse of the bind matrix gives the bone position in mesh space, i.e. in the
+		/// model's pose. It goes through the renderer transform to stay in the anchor's frame.
+		/// </summary>
+		private static bool TryRestPosition(GameObject root, Transform bone, out Vector3 position) {
+			foreach (var skin in root.GetComponentsInChildren<SkinnedMeshRenderer>(true)) {
+				var mesh = skin ? skin.sharedMesh : null;
+				if (mesh == null || skin.bones == null)
+					continue;
+
+				var bindPoses = mesh.bindposes;
+				for (var i = 0; i < skin.bones.Length && i < bindPoses.Length; i++) {
+					if (skin.bones[i] != bone)
+						continue;
+
+					position = skin.transform.TransformPoint(bindPoses[i].inverse.MultiplyPoint3x4(Vector3.zero));
+					return true;
+				}
+			}
+
+			position = default;
+			return false;
 		}
 
 		public void OnDrawGizmos() {
@@ -199,16 +307,23 @@ namespace Nox.CCK.Avatars.Scale {
 		public UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar, AvatarModulePhase phase, CancellationToken token = default) {
 			if (phase != AvatarModulePhase.Init) return UniTask.FromResult(true);
 			_runtimeAvatar = runtimeAvatar;
-			InitialHeight = RuntimeHeight();
+			MeasureInitialHeights(runtimeAvatar.Descriptor);
 			InitialScale = Scale;
 
-			// Add parameters
+			// One triple per measure (initial / current / real), see IScaleAvatarModule.
 			_parameters.Clear();
 			_parameters.Add(new ScaleEditedParameter(this));
+			_parameters.Add(new InitialScaleParameter(this));
 			_parameters.Add(new ScaleParameter(this));
+			_parameters.Add(new InitialHeightParameter(this));
 			_parameters.Add(new HeightParameter(this));
-			_parameters.Add(new EyeHeightParameter(this));
+			_parameters.Add(new RealHeightParameter(this));
+			_parameters.Add(new InitialHeadHeightParameter(this));
 			_parameters.Add(new HeadHeightParameter(this));
+			_parameters.Add(new RealHeadHeightParameter(this));
+			_parameters.Add(new InitialEyeHeightParameter(this));
+			_parameters.Add(new EyeHeightParameter(this));
+			_parameters.Add(new RealEyeHeightParameter(this));
 
 			_parameterModule = runtimeAvatar.Descriptor.GetModules<IParameterModule>().FirstOrDefault();
 			foreach (var p in _parameters)
