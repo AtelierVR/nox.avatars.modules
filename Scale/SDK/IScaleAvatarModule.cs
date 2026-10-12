@@ -24,7 +24,8 @@ namespace Nox.Avatars.Scale {
 		/// <summary>
 		/// Effective (world) scale of the avatar, i.e. the anchor's lossy scale. Assigning it resizes the
 		/// avatar so its effective scale matches; the parent scale is divided out because <c>localScale</c> is
-		/// parent-relative.
+		/// parent-relative. Sibling modules are warned through <see cref="ScaleChangedEvent"/> on the
+		/// avatar's module bus (see <see cref="IAvatarModuleBus"/>).
 		/// </summary>
 		public float Scale { get; set; }
 

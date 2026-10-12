@@ -3,6 +3,7 @@
   "rootNamespace": "",
   "references": [
     "Nox.Avatars",
+    "Nox.CCK.Avatars",
     "Nox.Avatars.Parameters",
     "Nox.CCK",
     "UniTask",

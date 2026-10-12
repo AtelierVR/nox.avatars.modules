@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using Nox.Avatars;
 using Nox.CCK.Avatars.Camera;
 using Nox.CCK.Avatars.EyeLooks;
 using Nox.CCK.Avatars.Parameters;

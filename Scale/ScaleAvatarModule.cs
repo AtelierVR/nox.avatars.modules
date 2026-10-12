@@ -62,8 +62,32 @@ namespace Nox.CCK.Avatars.Scale {
 				var anchor      = _runtimeAvatar.Descriptor.Anchor.transform;
 				var parentScale = anchor.parent ? anchor.parent.lossyScale.y : 1f;
 				var local       = Mathf.Abs(parentScale) > 0.001f ? value / parentScale : value;
+
+				// The parameter is pushed on every sync: a no-op write must not rebuild the jiggles below.
+				if (Mathf.Approximately(anchor.localScale.y, local))
+					return;
+
 				anchor.localScale = new Vector3(local, local, local);
+
+				// The whole skeleton just moved: tell the other modules (jiggles, …) so they rebuild from the new
+				// pose instead of keeping an offset in the old world position.
+				NotifyScaleChanged(anchor.lossyScale.y);
 			}
+		}
+
+		/// <summary>
+		/// Announces that the avatar changed size by sending <see cref="ScaleChangedEvent"/> on the avatar's
+		/// module bus (see <see cref="IRuntimeAvatar.Bus"/>), so sibling modules can react without knowing
+		/// this one.
+		/// </summary>
+		private void NotifyScaleChanged(float scale) {
+			var bus = _runtimeAvatar?.Bus;
+			if (bus == null)
+				return;
+
+			bus.Send(ScaleChangedEvent.Name, new BusContext { 
+				[ScaleChangedEvent.Scale] = scale
+			});
 		}
 
 		/// <summary>
