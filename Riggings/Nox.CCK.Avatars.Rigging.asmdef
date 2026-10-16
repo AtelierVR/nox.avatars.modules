@@ -4,6 +4,7 @@
     "references": [
         "Nox.Avatars",
         "Nox.CCK",
+        "Nox.CCK.Entities",
         "Unity.Animation.Rigging",
         "Nox.Avatars.Parameters",
         "Nox.Avatars.Rigging",

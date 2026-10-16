@@ -15,7 +15,7 @@ namespace Nox.Avatars.Rigging {
 		/// <summary>The id of the backend that created this rig (e.g. "rigbuilder", "finalik").</summary>
 		string Id { get; }
 
-		/// <summary>Resolves a generated IK target by its <see cref="PlayerRig"/> index.</summary>
+		/// <summary>Resolves a generated IK target by its <see cref="EntityRig"/> index.</summary>
 		bool TryGetPart(ushort id, out IRigPart part);
 
 		/// <summary>Returns all generated IK targets.</summary>

@@ -4,6 +4,7 @@
     "references": [
         "Nox.Avatars",
         "Nox.CCK",
+        "Nox.CCK.Entities",
         "Nox.Avatars.Parameters",
         "Nox.Avatars.Rigging",
         "Nox.CCK.Avatars.Parameters",

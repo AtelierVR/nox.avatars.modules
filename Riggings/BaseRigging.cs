@@ -3,7 +3,7 @@ using System.Linq;
 using Nox.Avatars;
 using Nox.Avatars.Parameters;
 using Nox.Avatars.Rigging;
-using Nox.CCK.Players;
+using Nox.CCK.Entities;
 using UnityEngine;
 using Logger = Nox.CCK.Utils.Logger;
 using Object = UnityEngine.Object;

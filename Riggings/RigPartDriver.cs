@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Nox.CCK.Avatars.Rigging {
 	/// <summary>
-	/// Single mapping from a tracked <c>PlayerRig</c> part to the avatar rig transform that carries it.
+	/// Single mapping from a tracked <c>EntityRig</c> part to the avatar rig transform that carries it.
 	///
 	/// Both drivers go through here so a part always lands on the same rig object: the local one
 	/// (<c>AvatarSyncConnector</c>) writes the live values every frame, the remote one

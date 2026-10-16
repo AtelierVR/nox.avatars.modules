@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Nox.Avatars.Rigging;
-using Nox.CCK.Players;
+using Nox.CCK.Entities;
 using UnityEngine;
 using Logger = Nox.CCK.Utils.Logger;
 
@@ -9,8 +9,8 @@ namespace Nox.CCK.Avatars.StateMachines {
 	/// <summary>Un membre visé par un <see cref="TrackingControl"/> et le mode à lui appliquer.</summary>
 	[Serializable]
 	public class TrackingControlEntry {
-		[Tooltip("Membre visé (PlayerRig, comme les parties du rig).")]
-		public PlayerRig part = PlayerRig.Head;
+		[Tooltip("Membre visé (EntityRig, comme les parties du rig).")]
+		public EntityRig part = EntityRig.Head;
 
 		[Tooltip("Normal : le contrôleur décide. Animation : le membre suit l'animation de l'état (IK coupé). Tracking : il suit l'IK.")]
 		public RiggingTrackingMode mode = RiggingTrackingMode.Animation;
@@ -39,12 +39,12 @@ namespace Nox.CCK.Avatars.StateMachines {
 		[Header("Tracking Control")]
 		[Tooltip("Membres à modifier et comment. Par défaut les points de suivi standard, tous en Animation.")]
 		public List<TrackingControlEntry> parts = new() {
-			new TrackingControlEntry { part = PlayerRig.Head },
-			new TrackingControlEntry { part = PlayerRig.LeftHand },
-			new TrackingControlEntry { part = PlayerRig.RightHand },
-			new TrackingControlEntry { part = PlayerRig.Hips },
-			new TrackingControlEntry { part = PlayerRig.LeftFoot },
-			new TrackingControlEntry { part = PlayerRig.RightFoot },
+			new TrackingControlEntry { part = EntityRig.Head },
+			new TrackingControlEntry { part = EntityRig.LeftHand },
+			new TrackingControlEntry { part = EntityRig.RightHand },
+			new TrackingControlEntry { part = EntityRig.Hips },
+			new TrackingControlEntry { part = EntityRig.LeftFoot },
+			new TrackingControlEntry { part = EntityRig.RightFoot },
 		};
 
 		public override void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
