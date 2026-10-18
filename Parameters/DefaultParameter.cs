@@ -13,9 +13,15 @@ namespace Nox.CCK.Avatars.Parameters {
 		private readonly string _name;
 		private object          _value;
 
-		public DefaultParameter(string name, ParameterType type, object defaultValue = null) {
+		public DefaultParameter(
+			string name,
+			ParameterType type,
+			object defaultValue = null,
+			ParameterFlags flags = ParameterFlags.AllEditable
+		) {
 			_name     = name;
 			ValueType = type;
+			Flags     = flags;
 			_value    = Coerce(defaultValue);
 		}
 
@@ -26,8 +32,7 @@ namespace Nox.CCK.Avatars.Parameters {
 		public int Key
 			=> _name.Hash();
 
-		public ParameterFlags Flags
-			=> ParameterFlags.AllEditable;
+		public ParameterFlags Flags { get; }
 
 		public ParameterType ValueType { get; }
 

@@ -36,13 +36,22 @@ namespace Nox.CCK.Avatars.Parameters {
 		/// Paramètres standards toujours exposés, même quand l'Animator de l'avatar ne les déclare
 		/// pas : garantit que <see cref="GetParameter(string)"/> ne renvoie jamais <c>null</c> pour
 		/// ces noms (VelocityX/Y/Z = Float 0, Grounded = Bool false, Pose = Int 0).
+		/// <para>
+		/// <c>Sync</c> carries the synchronization direction used by the relay when it mirrors the
+		/// parameter as an entity property (<see cref="ParameterFlags.OwnerSyncsToViewers"/>,
+		/// <see cref="ParameterFlags.ViewerSyncsToOwner"/>).
+		/// </para>
 		/// </summary>
-		public static readonly (string Name, ParameterType Type, object Default)[] DefaultParameters = {
-			("VelocityX", ParameterType.Float, 0f),
-			("VelocityY", ParameterType.Float, 0f),
-			("VelocityZ", ParameterType.Float, 0f),
-			("Grounded",  ParameterType.Bool,  false),
-			("Pose",      ParameterType.Int,   0)
+		public static readonly (string Name, ParameterType Type, object Default, ParameterFlags Sync)[] DefaultParameters = {
+			("VelocityX", ParameterType.Float, 0f,    ParameterFlags.OwnerBroadcast),
+			("VelocityY", ParameterType.Float, 0f,    ParameterFlags.OwnerBroadcast),
+			("VelocityZ", ParameterType.Float, 0f,    ParameterFlags.OwnerBroadcast),
+			("Grounded",  ParameterType.Bool,  false, ParameterFlags.OwnerBroadcast),
+			("Pose",      ParameterType.Int,   0,     ParameterFlags.OwnerBroadcast),
+			// Voice status is driven by the session `voice.status` property (see nox.relay);
+			// these two stay local to avoid a second, conflicting synchronization path.
+			("Muted",     ParameterType.Bool,  false, ParameterFlags.AllEditable),
+			("Deafened",  ParameterType.Bool,  false, ParameterFlags.AllEditable)
 		};
 
 		private readonly List<IParameter>              _paramList = new();
@@ -121,11 +130,11 @@ namespace Nox.CCK.Avatars.Parameters {
 		/// Les paramètres réellement déclarés par l'avatar gardent la priorité (enregistrés d'abord).
 		/// </summary>
 		private void RegisterDefaultParameters() {
-			foreach (var (name, type, defaultValue) in DefaultParameters) {
+			foreach (var (name, type, defaultValue, sync) in DefaultParameters) {
 				if (_byName.ContainsKey(name))
 					continue;
 
-				RegisterParameter(new DefaultParameter(name, type, defaultValue));
+				RegisterParameter(new DefaultParameter(name, type, defaultValue, sync));
 			}
 		}
 

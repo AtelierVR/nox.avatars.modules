@@ -49,6 +49,7 @@ namespace Nox.Avatars.Modules.Runtime {
 			valid &= ScaleAvatarModule.Check(descriptor);
 			valid &= HandAvatarModule.Check(descriptor);
 			valid &= AvatarMenuModule.Check(descriptor);
+			valid &= VoiceStatusAvatarModule.Check(descriptor);
 
 			context.Callback(valid);
 		}
