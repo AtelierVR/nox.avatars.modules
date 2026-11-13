@@ -21,6 +21,20 @@ namespace Nox.Avatars.Rigging {
 		/// <summary>Returns all generated IK targets.</summary>
 		IRigPart[] GetParts();
 
+		/// <summary>
+		/// Binds a rig slot to an <b>external</b> transform: the solver then reads this transform
+		/// instead of the target it generated.
+		/// <para>
+		/// This is what lets a tracked part drive the avatar directly: the part <b>is</b> the
+		/// target, so nobody has to copy its pose onto a generated object every frame. The rig
+		/// keeps the ownership of the binding: passing <c>null</c> restores the generated target.
+		/// </para>
+		/// </summary>
+		/// <param name="id">Rig slot, as an <see cref="EntityRig"/> index.</param>
+		/// <param name="target">Transform the solver must read, or <c>null</c> to restore the generated one.</param>
+		/// <returns><c>false</c> when the rig exposes no such slot.</returns>
+		bool SetTarget(ushort id, Transform target);
+
 		/// <summary>Resolves a humanoid bone transform on the avatar.</summary>
 		Transform GetBone(HumanBodyBones bone);
 

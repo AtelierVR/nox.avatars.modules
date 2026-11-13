@@ -2,10 +2,11 @@ using System;
 using Nox.Avatars.Parameters;
 using Nox.CCK.Network;
 using Nox.CCK.Utils;
+using Nox.CCK.Avatars.Parameters;
 
 namespace Nox.CCK.Avatars.Rigging.Parameters {
 	/// <summary>
-	/// Exposes the active rigging backend as a synchronised parameter (<c>ik/type</c>).
+	/// Exposes the active rigging backend as a synchronised parameter (<c>Rig/Type</c>).
 	///
 	/// The value is the stable CRC32 of the backend id (see <see cref="Hash.CRC32(string)"/>),
 	/// so a remote viewer can detect which backend the owner uses and hot-swap its own rig to
@@ -22,7 +23,9 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 	/// </list>
 	/// </summary>
 	public class RiggingTypeParameter : IParameter {
-		public const string ParameterName = "ik/type";
+		/// <summary>Published by its module: this parameter does not announce a write.</summary>
+		public UnityEngine.Events.UnityEvent<IParameter> OnValueChanged => null;
+		public const string ParameterName = "Rig/Type";
 
 		private readonly Func<string> _getBackendId;
 		private readonly Action<int>  _onChanged;
@@ -41,6 +44,10 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 
 		public bool IsValid()
 			=> true;
+
+		/// <summary>Category shown by the parameter editors.</summary>
+		public string Category
+			=> ParameterCategory.Rigging;
 
 		public int Key
 			=> Name.Hash();

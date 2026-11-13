@@ -3,9 +3,12 @@ using UnityEngine;
 using UnityEngine.Animations.Rigging;
 using System.Linq;
 using Nox.CCK.Network;
+using Nox.CCK.Avatars.Parameters;
 
 namespace Nox.CCK.Avatars.Rigging.Parameters {
 	public class IKWeightParameter : IParameter {
+		/// <summary>Published by its module: this parameter does not announce a write.</summary>
+		public UnityEngine.Events.UnityEvent<IParameter> OnValueChanged => null;
 		private readonly RigBuilder _rigBuilder;
 		private readonly string     _rigName;
 		private readonly string     _parameterName;
@@ -30,6 +33,10 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 		public bool IsValid()
 			=> _rigBuilder && _rigBuilder.layers.Any(l => l.rig && l.rig.name == _rigName);
 
+		/// <summary>Category shown by the parameter editors.</summary>
+		public string Category
+			=> ParameterCategory.Rigging;
+
 		public int Key
 			=> Name.Hash();
 
@@ -39,7 +46,7 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 		public ParameterFlags Flags
 			=> ParameterFlags.OwnerEditable
 				| ParameterFlags.OwnerSyncsToViewers;
-		
+
 		// ReSharper disable Unity.PerformanceAnalysis
 		public object Value {
 			get {
@@ -61,13 +68,13 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 				return 0f;
 			}
 			set {
-				if (!_rigBuilder) 
+				if (!_rigBuilder)
 					return;
 
 				var weight = value.ToFloat();
 
 				foreach (var layer in _rigBuilder.layers) {
-					if (!layer.rig || !layer.rig.name.Contains(_rigName)) 
+					if (!layer.rig || !layer.rig.name.Contains(_rigName))
 						continue;
 
 					var ikc = layer.rig.GetComponentsInChildren<TwoBoneIKConstraint>();

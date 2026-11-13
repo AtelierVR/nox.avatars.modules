@@ -70,8 +70,35 @@ namespace Nox.CCK.Avatars.Rigging {
 		/// <summary>Controller channel: the player controller declares whether it drives the bone.</summary>
 		public void SetActive(HumanBodyBones bone, bool active) {
 			_active[bone] = active;
-			ApplyActive(bone, IsActive(bone));
+
+			var effective = IsActive(bone);
+			Logger.LogDebug($"[Rig:{Id}] controller {bone} = {active} → applied {effective} (avatar override: {GetTracking(bone)})");
+
+			ApplyActive(bone, effective);
 		}
+
+		/// <summary>
+		/// Writes both channels again on the backend.
+		/// <para>
+		/// A backend whose solver is created lazily cannot write anything before it exists: <see cref="SetActive"/> and
+		/// <see cref="SetTracking"/> then only record the state, and without this the slots keep the generator's
+		/// defaults (VRIK spine at 0, arms animation-driven) for good. Backends call it as soon as their solver is
+		/// available, so a channel declared early is honoured.
+		/// </para>
+		/// </summary>
+		public void ReapplyActive() {
+			Logger.LogDebug($"[Rig:{Id}] re-apply: {_active.Count} controller channel(s), {_tracking.Count} avatar channel(s)");
+
+			foreach (var bone in _active.Keys)
+				ApplyActive(bone, IsActive(bone));
+
+			foreach (var bone in _tracking.Keys)
+				if (!_active.ContainsKey(bone))
+					ApplyActive(bone, IsActive(bone));
+		}
+
+		public bool HasControllerActive(HumanBodyBones bone)
+			=> _active.TryGetValue(bone, out var active) && active;
 
 		/// <summary>
 		/// Avatar channel: overrides tracking for the bone (<see cref="RiggingTrackingMode.Tracking"/> = follow IK,
@@ -84,7 +111,10 @@ namespace Nox.CCK.Avatars.Rigging {
 			else
 				_tracking[bone] = mode == RiggingTrackingMode.Tracking;
 
-			ApplyActive(bone, IsActive(bone));
+			var effective = IsActive(bone);
+			Logger.LogDebug($"[Rig:{Id}] avatar {bone} = {mode} → applied {effective} (controller: {(_active.TryGetValue(bone, out var controller) ? controller.ToString() : "none")})");
+
+			ApplyActive(bone, effective);
 		}
 
 		/// <summary>
@@ -113,6 +143,15 @@ namespace Nox.CCK.Avatars.Rigging {
 		/// </summary>
 		public virtual void SetExternalRootControl(bool external) { }
 
+		/// <summary>
+		/// Called every frame by <see cref="RigManagerModule"/> from its own <c>LateUpdate</c>, i.e. after the
+		/// Animator, the animation graph and the backend's solver evaluated.
+		/// Backends drive their parts from a solver that runs at the very end (VRIK solves in <c>LateUpdate</c>)
+		/// and do not need it; backends whose solver cannot reach the bone (<c>RigBuilderRig</c>, see its override)
+		/// write the tracked bones here.
+		/// </summary>
+		public virtual void LateUpdate() { }
+
 		/// <summary>Backend write of the bone's active state on the actual rig (RigLayer.active, VRIK weights...).</summary>
 		protected abstract void ApplyActive(HumanBodyBones bone, bool active);
 
@@ -126,6 +165,61 @@ namespace Nox.CCK.Avatars.Rigging {
 			part = null;
 			return false;
 		}
+
+		/* ------------------------------------------------------------------ */
+		/* External targets                                                     */
+		/* ------------------------------------------------------------------ */
+
+		/// <summary>
+		/// Binds a rig slot to an external transform: the solver reads it instead of the target
+		/// the rig generated, so a tracked part can drive the avatar without a per-frame pose copy.
+		/// </summary>
+		/// <param name="id">Rig slot, as an <see cref="EntityRig"/> index.</param>
+		/// <param name="target">Transform the solver must read, or <c>null</c> to restore the generated one.</param>
+		/// <returns><c>false</c> when the rig exposes no such slot.</returns>
+		public bool SetTarget(ushort id, Transform target) {
+			if (!TryGetPart(id, out _))
+				return false;
+
+			var bone = id.ToEntityRig().ToHumanBodyBones();
+			if (bone == HumanBodyBones.LastBone)
+				return false;
+
+			// The backend owns the binding: it points its solver on the target, and it is the only
+			// place the binding lives. Nothing is kept here, so nothing can drift from what the
+			// solver actually reads.
+			ApplyTarget(bone, target);
+			return true;
+		}
+
+		/// <summary>
+		/// Target the solver reads for a rig slot: the external one when it is bound, the generated
+		/// one otherwise.
+		/// </summary>
+		public Transform GetTarget(ushort id) {
+			var bone = id.ToEntityRig().ToHumanBodyBones();
+			return bone == HumanBodyBones.LastBone ? null : GetTarget(bone);
+		}
+
+		/// <summary>
+		/// Target the solver reads for a humanoid bone.
+		/// <para>
+		/// The backend answers, because it is the one that pointed its solver: the rig never keeps
+		/// a second copy of the binding.
+		/// </para>
+		/// </summary>
+		public virtual Transform GetTarget(HumanBodyBones bone)
+			=> GetPart(bone);
+
+		/// <summary>
+		/// Backend hook: re-point the solver on a new target for a rig slot. Passing <c>null</c>
+		/// restores the target the rig generated.
+		/// <para>
+		/// The default implementation does nothing: a backend whose solver reads the generated
+		/// target does not have to be told.
+		/// </para>
+		/// </summary>
+		protected virtual void ApplyTarget(HumanBodyBones bone, Transform target) { }
 
 		public Transform GetPart(HumanBodyBones bone) {
 			var index = bone.ToIndex();

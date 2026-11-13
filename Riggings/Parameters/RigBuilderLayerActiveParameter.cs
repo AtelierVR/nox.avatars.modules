@@ -3,9 +3,12 @@ using UnityEngine.Animations.Rigging;
 using System.Linq;
 using Nox.CCK.Network;
 using UnityEngine;
+using Nox.CCK.Avatars.Parameters;
 
 namespace Nox.CCK.Avatars.Rigging.Parameters {
 	public class RigBuilderLayerActiveParameter : IParameter {
+		/// <summary>Published by its module: this parameter does not announce a write.</summary>
+		public UnityEngine.Events.UnityEvent<IParameter> OnValueChanged => null;
 		private readonly RigBuilder _rigBuilder;
 		private readonly string     _layerName;
 		private readonly string     _parameterName;
@@ -19,6 +22,10 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 		public string Name
 			=> _parameterName;
 
+		/// <summary>Category shown by the parameter editors.</summary>
+		public string Category
+			=> ParameterCategory.Rigging;
+
 		public int Key
 			=> Name.Hash();
 
@@ -31,21 +38,21 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 
 		public object Value {
 			get {
-				if (!_rigBuilder || !_rigBuilder.enabled) 
+				if (!_rigBuilder || !_rigBuilder.enabled)
 					return false;
 				var layer = _rigBuilder.layers
 					.FirstOrDefault(l => l.rig && l.rig.name == _layerName);
 				return layer is { active: true };
 			}
 			set {
-			if (!_rigBuilder || !_rigBuilder.enabled) 
+			if (!_rigBuilder || !_rigBuilder.enabled)
 				return;
-			
+
 			foreach (var layer in _rigBuilder.layers.Where(layer => layer.rig && layer.rig.name == _layerName)) {
 				layer.active = value.ToBool();
 				break;
 			}
-			
+
 			if (Application.isPlaying && _rigBuilder.isActiveAndEnabled)
 				try {
 					_rigBuilder.Build();

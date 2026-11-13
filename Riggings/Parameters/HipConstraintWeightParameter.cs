@@ -3,9 +3,12 @@ using UnityEngine;
 using UnityEngine.Animations.Rigging;
 using System.Linq;
 using Nox.CCK.Network;
+using Nox.CCK.Avatars.Parameters;
 
 namespace Nox.CCK.Avatars.Rigging.Parameters {
 	public class HipConstraintWeightParameter : IParameter {
+		/// <summary>Published by its module: this parameter does not announce a write.</summary>
+		public UnityEngine.Events.UnityEvent<IParameter> OnValueChanged => null;
 		private readonly RigBuilder     _rigBuilder;
 		private readonly string         _parameterName;
 		private readonly ConstraintType _constraintType;
@@ -24,6 +27,10 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 		public string Name
 			=> _parameterName;
 
+		/// <summary>Category shown by the parameter editors.</summary>
+		public string Category
+			=> ParameterCategory.Rigging;
+
 		public int Key
 			=> Name.Hash();
 
@@ -33,14 +40,14 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 		public ParameterFlags Flags
 			=> ParameterFlags.OwnerEditable
 				| ParameterFlags.OwnerSyncsToViewers;
-		
+
 		// ReSharper disable Unity.PerformanceAnalysis
 		public object Value {
 			get {
-				if (!_rigBuilder) 
+				if (!_rigBuilder)
 					return 0f;
 
-				foreach (var layer in _rigBuilder.layers.Where(layer => layer.rig && layer.rig.name.Contains("Hip"))) 
+				foreach (var layer in _rigBuilder.layers.Where(layer => layer.rig && layer.rig.name.Contains("Hip")))
 					if (_constraintType == ConstraintType.Position) {
 						var pc = layer.rig.GetComponentInChildren<MultiPositionConstraint>();
 						if (pc) return pc.weight;
@@ -52,7 +59,7 @@ namespace Nox.CCK.Avatars.Rigging.Parameters {
 				return 0f;
 			}
 			set {
-				if (!_rigBuilder) 
+				if (!_rigBuilder)
 					return;
 
 				var weight = value.ToFloat();
