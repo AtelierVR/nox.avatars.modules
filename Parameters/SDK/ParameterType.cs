@@ -36,5 +36,14 @@ namespace Nox.Avatars.Parameters {
 		String = 11,
 		Vector3 = 12,
 		Quaternion = 13,
+
+		/// <summary>
+		/// Colour parameter. The Animator has no colour parameter, so a colour is carried by one
+		/// scalar parameter per channel (<c>Name.R</c>, <c>Name.G</c>, <c>Name.B</c>, <c>Name.A</c>)
+		/// and composed into a single typed parameter (see <c>CompositeParameter</c>).
+		/// </summary>
+		[Compatible("color")]
+		[InspectorName("Color")]
+		Color = 14,
 	}
 }

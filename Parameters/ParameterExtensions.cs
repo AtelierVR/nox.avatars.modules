@@ -22,6 +22,7 @@ namespace Nox.CCK.Avatars.Parameters {
 				ParameterType.ByteArray  => AppendBytes(current as byte[], value as byte[]),
 				ParameterType.Vector3    => current.ToVector3() + value.ToVector3(),
 				ParameterType.Quaternion => Quaternion.LookRotation(current.ToQuaternion().eulerAngles + value.ToQuaternion().eulerAngles),
+				ParameterType.Color      => Combine(current.ToColor(), value.ToColor(), (a, b) => a + b),
 				_                        => throw new ArgumentOutOfRangeException()
 			};
 		}
@@ -43,6 +44,7 @@ namespace Nox.CCK.Avatars.Parameters {
 				ParameterType.ByteArray  => throw new InvalidOperationException("Cannot subtract ByteArray parameters."),
 				ParameterType.String     => throw new InvalidOperationException("Cannot subtract String parameters."),
 				ParameterType.Quaternion => Quaternion.LookRotation(current.ToQuaternion().eulerAngles - value.ToQuaternion().eulerAngles),
+				ParameterType.Color      => Combine(current.ToColor(), value.ToColor(), (a, b) => a - b),
 				_                        => throw new ArgumentOutOfRangeException()
 			};
 		}
@@ -62,6 +64,7 @@ namespace Nox.CCK.Avatars.Parameters {
 				ParameterType.Double     => current.ToDouble() * value.ToDouble(),
 				ParameterType.Vector3    => Vector3.Scale(current.ToVector3(), value.ToVector3()),
 				ParameterType.Quaternion => current.ToQuaternion() * value.ToQuaternion(),
+				ParameterType.Color      => Combine(current.ToColor(), value.ToColor(), (a, b) => a * b),
 				ParameterType.ByteArray  => throw new InvalidOperationException("Cannot multiply ByteArray parameters."),
 				ParameterType.String     => throw new InvalidOperationException("Cannot multiply String parameters."),
 				_                        => throw new ArgumentOutOfRangeException()
@@ -89,13 +92,25 @@ namespace Nox.CCK.Avatars.Parameters {
 					current.ToVector3().z / value.ToVector3().z
 				),
 				ParameterType.Quaternion => throw new InvalidOperationException("Cannot divide Quaternion parameters."),
+				ParameterType.Color      => Combine(current.ToColor(), value.ToColor(), (a, b) => a / b),
 				_                        => throw new ArgumentOutOfRangeException()
 			};
 		}
 
+		/// <summary>Applies <paramref name="operation"/> channel by channel (a colour has no operator of its own).</summary>
+		private static Color Combine(Color a, Color b, Func<float, float, float> operation)
+			=> new(
+				operation(a.r, b.r),
+				operation(a.g, b.g),
+				operation(a.b, b.b),
+				operation(a.a, b.a)
+			);
+
 		private static byte[] AppendBytes(byte[] a, byte[] b) {
-			if (a == null || a.Length == 0) return b ?? Array.Empty<byte>();
-			if (b == null || b.Length == 0) return a;
+			if (a == null || a.Length == 0)
+				return b ?? Array.Empty<byte>();
+			if (b == null || b.Length == 0)
+				return a;
 
 			var result = new byte[a.Length + b.Length];
 			Buffer.BlockCopy(a, 0, result, 0, a.Length);

@@ -1,0 +1,351 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 776389e82c640c44086d3baf10dd1c7b, type: 3}
+  m_Name: lang
+  m_EditorClassIdentifier: Nox.CCK::Nox.CCK.Language.LanguagePack
+  languages:
+  - IETF: en-US
+    entries:
+    - key: rigging.inspector.title
+      value: "Rig Manager"
+    - key: rigging.inspector.backend
+      value: "Backend: {0}"
+    - key: rigging.inspector.backend_none
+      value: "Backend: none"
+    - key: rigging.inspector.targets
+      value: "IK targets: {0}"
+    - key: rigging.inspector.parts
+      value: "IK targets ({0})"
+    - key: rigging.inspector.parameters
+      value: "Parameters ({0})"
+    - key: rigging.inspector.backends
+      value: "Registered backends ({0})"
+    - key: rigging.inspector.no_parts
+      value: "This rig exposes no IK target."
+    - key: rigging.inspector.no_parameters
+      value: "This rig publishes no parameter."
+    - key: rigging.inspector.no_backends
+      value: "No rigging backend is registered."
+    - key: rigging.inspector.warning_no_rig
+      value: "No rig yet: the backend is resolved when the avatar loads, and the rig is built on it."
+    - key: rigging.inspector.part_row
+      value: "{0}"
+    - key: rigging.inspector.parameter_row
+      value: "{0}"
+    - key: rigging.inspector.type_row
+      value: "{0}"
+    - key: rigging.inspector.backend_row
+      value: "{0}"
+    - key: rigging.inspector.backend_row_active
+      value: "active"
+    - key: rigging.inspector.backend_row_idle
+      value: "idle"
+    - key: rigging.inspector.state_row
+      value: "{0}"
+    - key: rigging.inspector.state_tracked
+      value: "tracked"
+    - key: rigging.inspector.state_animated
+      value: "animated"
+    - key: rigging.inspector.state_driven
+      value: "driven"
+    - key: rigging.inspector.state_idle
+      value: "idle"
+    - key: rigging.inspector.state_unknown
+      value: "-"
+    - key: avatars.modules.notification.duplicated
+      value: '{0} modules found ({1}): the avatar check expects exactly one and fails with more, which blocks the build.'
+    - key: avatars.modules.notification.action.add
+      value: Add the module
+    - key: avatars.modules.notification.action.select
+      value: Select
+    - key: avatars.modules.camera.inspector.title
+      value: Camera
+    - key: avatars.modules.camera.inspector.detect
+      value: Detect
+    - key: avatars.modules.camera.inspector.edit
+      value: Edit
+    - key: avatars.modules.camera.inspector.done
+      value: Done
+    - key: avatars.modules.eye_looks.inspector.title
+      value: Eye Looks
+    - key: avatars.modules.menu.inspector.title
+      value: Menu
+    - key: avatars.modules.scale.inspector.title
+      value: Scale
+    - key: avatars.modules.scale.inspector.no_settings
+      value: 'This module has no setting: the scale follows the height of the player at runtime.'
+    - key: avatars.modules.parameters.inspector.title
+      value: Parameters
+    - key: avatars.modules.parameters.readonly
+      value: Read-only
+    - key: avatars.modules.parameters.asset
+      value: Parameters
+    - key: avatars.modules.parameters.values
+      value: "Values ({0})"
+    - key: avatars.modules.parameters.play_mode
+      value: 'Enter play mode to see the parameters the animator exposes, and to edit their values.'
+    - key: avatars.modules.parameters.none
+      value: 'The animator of the avatar exposes no parameter.'
+    - key: avatars.modules.parameters.no_animator
+      value: 'The avatar has no animator yet: its parameters appear once the avatar is loaded.'
+    - key: avatars.modules.parameters.saves
+      value: Save
+    - key: avatars.modules.parameters.saves.save
+      value: Save
+    - key: avatars.modules.parameters.saves.load
+      value: Load
+    - key: avatars.modules.parameters.saves.delete
+      value: Delete
+    - key: avatars.modules.parameters.saves.profiles
+      value: "Profiles ({0})"
+    - key: avatars.modules.parameters.saves.templates
+      value: "Templates ({0})"
+    - key: avatars.modules.parameters.saves.none
+      value: 'No profile saved for this avatar yet.'
+    - key: avatars.modules.parameters.saves.no_avatar
+      value: 'Load an avatar to save its parameters.'
+    - key: avatars.modules.parameters.saves.remote
+      value: 'This avatar is not yours: its saved parameters cannot be changed.'
+    - key: avatars.modules.parameters.saves.saved
+      value: "Saved '{0}' ({1} parameters)."
+    - key: avatars.modules.parameters.saves.loaded
+      value: "Loaded '{0}' ({1} parameters)."
+    - key: avatars.modules.parameters.saves.failed
+      value: "'{0}' cannot be saved."
+    - key: avatar.parameters.categories.general.label
+      value: General
+    - key: avatar.parameters.categories.general.description
+      value: 'Parameters that declare no category.'
+    - key: avatar.parameters.categories.movement.label
+      value: Movement
+    - key: avatar.parameters.categories.movement.description
+      value: 'Locomotion of the avatar (velocity, grounded state).'
+    - key: avatar.parameters.categories.pose.label
+      value: Pose
+    - key: avatar.parameters.categories.pose.description
+      value: 'Global pose of the avatar.'
+    - key: avatar.parameters.categories.audio.label
+      value: Audio
+    - key: avatar.parameters.categories.audio.description
+      value: 'Voice state of the player (muted, deafened, volume).'
+    - key: avatar.parameters.categories.team.label
+      value: Team
+    - key: avatar.parameters.categories.team.description
+      value: 'Team the player belongs to.'
+    - key: avatar.parameters.categories.rigging.label
+      value: Rigging
+    - key: avatar.parameters.categories.rigging.description
+      value: 'IK targets and weights driven by the rig manager.'
+    - key: avatar.parameters.categories.scale.label
+      value: Scale
+    - key: avatar.parameters.categories.scale.description
+      value: 'Height and scale of the avatar.'
+    - key: avatar.parameters.categories.appearance.label
+      value: Appearance
+    - key: avatar.parameters.categories.appearance.description
+      value: 'Toggled parts of the avatar (ears, tail, accessories...).'
+    - key: avatars.modules.playable.inspector.title
+      value: Playable Layers
+    - key: avatars.modules.camera.missing
+      value: 'No {0} module on the avatar: it gives the head offset the camera of the avatar follows, and the avatar check adds it anyway.'
+    - key: avatars.modules.camera.offset_unset
+      value: 'The camera module has no offset: the camera sits on the head bone, and the module derives the midpoint of the eyes when the avatar loads.'
+    - key: avatars.modules.parameters.missing
+      value: 'No {0} module on the avatar: it exposes the parameters of the Animator (velocity, grounded, pose...), and the avatar check adds it anyway.'
+    - key: avatars.modules.menus.missing
+      value: 'No {0} module on the avatar: it serves the player menu (expressions), and the avatar check adds it anyway.'
+    - key: avatars.modules.menus.no_menu
+      value: 'The menu module has no menu asset: the avatar shows no expression menu.'
+    - key: avatars.modules.hand.missing
+      value: 'No {0} module on the avatar: it poses the fingers from the hand tracking of the player, and the avatar check adds it anyway.'
+    - key: avatars.modules.voice.missing
+      value: 'No {0} module on the avatar: it places the voice of the player on the head, and the avatar check adds it anyway.'
+    - key: avatars.modules.voice_status.missing
+      value: 'No {0} module on the avatar: it shows the muted and deafened state of the player, and the avatar check adds it anyway.'
+    - key: avatars.modules.scale.missing
+      value: 'No {0} module on the avatar: it scales the avatar with the height of the player, and the avatar check adds it anyway.'
+    - key: avatars.modules.scale.no_camera
+      value: 'The scale module needs a camera module: it measures the avatar against the eyes of the player, so scaling cannot work without it.'
+    - key: avatars.modules.rigging.missing
+      value: 'No {0} module on the avatar: it resolves the rigging backend when the avatar loads and builds the rig on it.'
+    - key: avatars.modules.playable.none
+      value: 'The playable module has no layer controller: no extra animation layer is played.'
+    - key: avatars.modules.proxies.none
+      value: 'The proxy module replaces no clip: the animation graph is left untouched.'
+  - IETF: fr-FR
+    entries:
+    - key: rigging.inspector.title
+      value: "Gestionnaire de rig"
+    - key: rigging.inspector.backend
+      value: "Backend : {0}"
+    - key: rigging.inspector.backend_none
+      value: "Backend : aucun"
+    - key: rigging.inspector.targets
+      value: "Cibles IK : {0}"
+    - key: rigging.inspector.parts
+      value: "Cibles IK ({0})"
+    - key: rigging.inspector.parameters
+      value: "Paramètres ({0})"
+    - key: rigging.inspector.backends
+      value: "Backends enregistrés ({0})"
+    - key: rigging.inspector.no_parts
+      value: "Ce rig n'expose aucune cible IK."
+    - key: rigging.inspector.no_parameters
+      value: "Ce rig ne publie aucun paramètre."
+    - key: rigging.inspector.no_backends
+      value: "Aucun backend de rigging n'est enregistré."
+    - key: rigging.inspector.warning_no_rig
+      value: "Pas encore de rig : le backend est résolu au chargement de l'avatar, et le rig est construit dessus."
+    - key: rigging.inspector.part_row
+      value: "{0}"
+    - key: rigging.inspector.parameter_row
+      value: "{0}"
+    - key: rigging.inspector.type_row
+      value: "{0}"
+    - key: rigging.inspector.backend_row
+      value: "{0}"
+    - key: rigging.inspector.backend_row_active
+      value: "actif"
+    - key: rigging.inspector.backend_row_idle
+      value: "inactif"
+    - key: rigging.inspector.state_row
+      value: "{0}"
+    - key: rigging.inspector.state_tracked
+      value: "suivi"
+    - key: rigging.inspector.state_animated
+      value: "animé"
+    - key: rigging.inspector.state_driven
+      value: "piloté"
+    - key: rigging.inspector.state_idle
+      value: "inactif"
+    - key: rigging.inspector.state_unknown
+      value: "-"
+    - key: avatars.modules.notification.duplicated
+      value: "{0} modules trouvés ({1}) : la vérification de l'avatar en attend exactement un et échoue au-delà, ce qui bloque la compilation."
+    - key: avatars.modules.notification.action.add
+      value: Ajouter le module
+    - key: avatars.modules.notification.action.select
+      value: Sélectionner
+    - key: avatars.modules.camera.inspector.title
+      value: Caméra
+    - key: avatars.modules.camera.inspector.detect
+      value: Détecter
+    - key: avatars.modules.camera.inspector.edit
+      value: Modifier
+    - key: avatars.modules.camera.inspector.done
+      value: Terminé
+    - key: avatars.modules.eye_looks.inspector.title
+      value: Regards
+    - key: avatars.modules.menu.inspector.title
+      value: Menu
+    - key: avatars.modules.scale.inspector.title
+      value: Échelle
+    - key: avatars.modules.scale.inspector.no_settings
+      value: "Ce module n'a aucun réglage : l'échelle suit la taille du joueur à l'exécution."
+    - key: avatars.modules.parameters.inspector.title
+      value: Paramètres
+    - key: avatars.modules.parameters.readonly
+      value: Lecture seul
+    - key: avatars.modules.parameters.asset
+      value: Paramètres
+    - key: avatars.modules.parameters.values
+      value: "Valeurs ({0})"
+    - key: avatars.modules.parameters.play_mode
+      value: "Entrez en mode Play pour voir les paramètres exposés par l'animateur, et modifier leurs valeurs."
+    - key: avatars.modules.parameters.none
+      value: "L'animateur de l'avatar n'expose aucun paramètre."
+    - key: avatars.modules.parameters.no_animator
+      value: "L'avatar n'a pas encore d'animateur : ses paramètres apparaissent une fois l'avatar chargé."
+    - key: avatars.modules.parameters.saves
+      value: Sauvegarde
+    - key: avatars.modules.parameters.saves.save
+      value: Enregistrer
+    - key: avatars.modules.parameters.saves.load
+      value: Charger
+    - key: avatars.modules.parameters.saves.delete
+      value: Supprimer
+    - key: avatars.modules.parameters.saves.profiles
+      value: "Profils ({0})"
+    - key: avatars.modules.parameters.saves.templates
+      value: "Modèles ({0})"
+    - key: avatars.modules.parameters.saves.none
+      value: "Aucun profil enregistré pour cet avatar."
+    - key: avatars.modules.parameters.saves.no_avatar
+      value: "Chargez un avatar pour enregistrer ses paramètres."
+    - key: avatars.modules.parameters.saves.remote
+      value: "Cet avatar n'est pas le vôtre : ses paramètres enregistrés ne peuvent pas être modifiés."
+    - key: avatars.modules.parameters.saves.saved
+      value: "Profil '{0}' enregistré ({1} paramètres)."
+    - key: avatars.modules.parameters.saves.loaded
+      value: "Profil '{0}' chargé ({1} paramètres)."
+    - key: avatars.modules.parameters.saves.failed
+      value: "'{0}' ne peut pas être enregistré."
+    - key: avatar.parameters.categories.general.label
+      value: Général
+    - key: avatar.parameters.categories.general.description
+      value: "Paramètres qui ne déclarent aucune catégorie."
+    - key: avatar.parameters.categories.movement.label
+      value: Déplacement
+    - key: avatar.parameters.categories.movement.description
+      value: "Locomotion de l'avatar (vitesse, état au sol)."
+    - key: avatar.parameters.categories.pose.label
+      value: Pose
+    - key: avatar.parameters.categories.pose.description
+      value: "Pose globale de l'avatar."
+    - key: avatar.parameters.categories.audio.label
+      value: Audio
+    - key: avatar.parameters.categories.audio.description
+      value: "État de la voix du joueur (muet, sourd, volume)."
+    - key: avatar.parameters.categories.team.label
+      value: Équipe
+    - key: avatar.parameters.categories.team.description
+      value: "Équipe à laquelle appartient le joueur."
+    - key: avatar.parameters.categories.rigging.label
+      value: Rig
+    - key: avatar.parameters.categories.rigging.description
+      value: "Cibles IK et poids pilotés par le gestionnaire de rig."
+    - key: avatar.parameters.categories.scale.label
+      value: Échelle
+    - key: avatar.parameters.categories.scale.description
+      value: "Taille et échelle de l'avatar."
+    - key: avatar.parameters.categories.appearance.label
+      value: Apparence
+    - key: avatar.parameters.categories.appearance.description
+      value: "Parties de l'avatar activables (oreilles, queue, accessoires...)."
+    - key: avatars.modules.playable.inspector.title
+      value: Couches de lecture
+    - key: avatars.modules.camera.missing
+      value: "Aucun module {0} sur l'avatar : il fournit le décalage de tête que suit la caméra de l'avatar, et la vérification de l'avatar l'ajoute de toute façon."
+    - key: avatars.modules.camera.offset_unset
+      value: "Le module de caméra n'a pas de décalage : la caméra reste sur l'os de la tête, et le module calcule le milieu des yeux au chargement de l'avatar."
+    - key: avatars.modules.parameters.missing
+      value: "Aucun module {0} sur l'avatar : il expose les paramètres de l'Animator (vitesse, au sol, pose...), et la vérification de l'avatar l'ajoute de toute façon."
+    - key: avatars.modules.menus.missing
+      value: "Aucun module {0} sur l'avatar : il sert le menu du joueur (expressions), et la vérification de l'avatar l'ajoute de toute façon."
+    - key: avatars.modules.menus.no_menu
+      value: "Le module de menus n'a pas d'asset de menu : l'avatar n'affiche aucun menu d'expressions."
+    - key: avatars.modules.hand.missing
+      value: "Aucun module {0} sur l'avatar : il pose les doigts d'après le suivi des mains du joueur, et la vérification de l'avatar l'ajoute de toute façon."
+    - key: avatars.modules.voice.missing
+      value: "Aucun module {0} sur l'avatar : il place la voix du joueur sur la tête, et la vérification de l'avatar l'ajoute de toute façon."
+    - key: avatars.modules.voice_status.missing
+      value: "Aucun module {0} sur l'avatar : il affiche l'état muet et sourd du joueur, et la vérification de l'avatar l'ajoute de toute façon."
+    - key: avatars.modules.scale.missing
+      value: "Aucun module {0} sur l'avatar : il adapte l'échelle de l'avatar à la taille du joueur, et la vérification de l'avatar l'ajoute de toute façon."
+    - key: avatars.modules.scale.no_camera
+      value: "Le module d'échelle a besoin d'un module de caméra : il mesure l'avatar par rapport aux yeux du joueur, sans lui l'échelle ne peut pas fonctionner."
+    - key: avatars.modules.rigging.missing
+      value: "Aucun module {0} sur l'avatar : il résout le backend de rigging au chargement de l'avatar et construit le rig dessus."
+    - key: avatars.modules.playable.none
+      value: "Le module de playable n'a aucun contrôleur de couche : aucune couche d'animation supplémentaire n'est jouée."
+    - key: avatars.modules.proxies.none
+      value: "Le module de proxies ne remplace aucun clip : le graphe d'animation reste inchangé."

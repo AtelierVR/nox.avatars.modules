@@ -10,7 +10,10 @@ namespace Nox.Avatars.Parameters {
         ViewerEditable = 1 << 1,
         /// <summary>Tous les participants peuvent éditer leur copie.</summary>
         AllEditable = OwnerEditable | ViewerEditable,
-        /// <summary>La valeur est sauvegardée et restaurée entre sessions.</summary>
+        /// <summary>
+        /// The value is saved and restored between sessions: it is kept in the data of the avatar (see
+        /// <c>ParameterPersistence</c>) and written back when the avatar loads.
+        /// </summary>
         Persistent = 1 << 2,
         /// <summary>Les viewers peuvent pousser des changements vers le client du owner.</summary>
         ViewerSyncsToOwner = 1 << 3,

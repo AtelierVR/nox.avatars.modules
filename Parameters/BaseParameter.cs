@@ -1,12 +1,17 @@
 using System;
 using Nox.Avatars.Parameters;
+using Nox.CCK.Events;
 using Nox.CCK.Network;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Nox.CCK.Avatars.Parameters {
 	public abstract class BaseParameter : IParameter {
 		internal AnimatorControllerParameter Parameter;
 		internal ParameterEntry              Entry;
+
+		/// <summary>Raised after <see cref="Value"/> was written (see <see cref="IParameter.OnValueChanged"/>).</summary>
+		public UnityEvent<IParameter> OnValueChanged { get; } = new NoxEvent<IParameter>();
 
 		public string Name
 			=> Parameter.name;
@@ -21,6 +26,13 @@ namespace Nox.CCK.Avatars.Parameters {
 
 		public int Key
 			=> Name.Hash();
+
+		/// <summary>
+		/// Category declared by <see cref="AvatarParameterModule.DefaultParameters"/> for this name (the game
+		/// owns the parameters it declares), or <c>null</c> when neither declares one.
+		/// </summary>
+		public string Category
+			=> AvatarParameterModule.CategoryOf(Name);
 
 		public ParameterFlags Flags
 			=> Entry?.flags ?? ParameterFlags.AllEditable;
@@ -69,6 +81,8 @@ namespace Nox.CCK.Avatars.Parameters {
 					default:
 						throw new ArgumentOutOfRangeException($"Unsupported parameter type: {Parameter.type}");
 				}
+
+				OnValueChanged.Invoke(this);
 			}
 		}
 
