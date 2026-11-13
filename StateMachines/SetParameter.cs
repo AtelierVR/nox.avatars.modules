@@ -43,6 +43,7 @@ namespace Nox.CCK.Avatars.StateMachines {
 				ulong ul     => (GetBytes(ul), ParameterType.ULong),
 				float f      => (GetBytes(f), ParameterType.Float),
 				double d     => (GetBytes(d), ParameterType.Double),
+				Color c      => (Converter.ToBytes(c), ParameterType.Color),
 				_            => throw new ArgumentException($"Unsupported type: {typeof(T)}")
 			};
 		}
@@ -81,6 +82,8 @@ namespace Nox.CCK.Avatars.StateMachines {
 					=> (T)(object)MemoryMarshal.Read<Vector3>(value),
 				ParameterType.Quaternion when typeof(T) == typeof(Quaternion)
 					=> (T)(object)MemoryMarshal.Read<Quaternion>(value),
+				ParameterType.Color when typeof(T) == typeof(Color)
+					=> (T)(object)value.ToColor(),
 				_ => throw new InvalidOperationException($"Cannot convert {type} to {typeof(T)}")
 			};
 		}
@@ -101,6 +104,7 @@ namespace Nox.CCK.Avatars.StateMachines {
 				ParameterType.Double     => GetValue<double>(),
 				ParameterType.Vector3    => GetValue<Vector3>(),
 				ParameterType.Quaternion => GetValue<Quaternion>(),
+				ParameterType.Color      => GetValue<Color>(),
 				_                        => null
 			};
 
@@ -169,8 +173,8 @@ namespace Nox.CCK.Avatars.StateMachines {
 		public override void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) {
 			base.OnStateEnter(animator, stateInfo, layerIndex);
 
-			var module = RuntimeAvatar?.Descriptor
-				.GetModules<IParameterModule>()
+			var module = Descriptor
+				?.GetModules<IParameterModule>()
 				.FirstOrDefault();
 
 			if (module == null) {

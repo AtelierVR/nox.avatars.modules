@@ -34,12 +34,5 @@
     margin-left: 15px;
 }
 
-/* Ligne de détail (Key + buffer sérialisé) affichée au survol d'un paramètre. */
-.parameter-detail {
-    font-size: 10px;
-    color: rgba(140, 200, 255, 0.85);
-    -unity-font-style: italic;
-    margin-top: 3px;
-    margin-left: 2px;
-    white-space: normal;
-}
+/* La ligne de détail (Key + buffer sérialisé) affichée au survol d'un paramètre vient des
+   styles partagés (nox.cck/Resources/styles/value.uss), chargé par le UXML. */

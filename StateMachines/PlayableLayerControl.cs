@@ -96,7 +96,7 @@ namespace Nox.CCK.Avatars.StateMachines {
 		/// </summary>
 		private void ResolveTarget(Animator animator = null, bool log = true) {
 			if (_layers == null)
-				_layers = RuntimeAvatar?.Descriptor?
+				_layers = Descriptor?
 					.GetModules<IPlayableLayerModule>()
 					.FirstOrDefault();
 

@@ -5,6 +5,7 @@
     "Nox.Avatars",
     "Nox.CCK.Avatars",
     "Nox.Avatars.Parameters",
+    "Nox.CCK.Avatars.Parameters",
     "Nox.CCK",
     "UniTask",
     "Nox.Avatars.Camera",

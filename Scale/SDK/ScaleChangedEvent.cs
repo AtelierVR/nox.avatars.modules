@@ -1,7 +1,7 @@
 namespace Nox.Avatars.Scale {
 	/// <summary>
 	/// The <c>scale.change</c> bus event, sent by the scale module when the avatar's effective scale changes:
-	/// the whole skeleton moved, so anything anchored to the bones (jiggles, …) must rebuild from the new
+	/// the whole skeleton moved, so anything anchored to the bones (jiggles, ...) must rebuild from the new
 	/// pose.
 	/// </summary>
 	public static class ScaleChangedEvent {

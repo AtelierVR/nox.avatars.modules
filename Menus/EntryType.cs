@@ -6,7 +6,7 @@ namespace Nox.CCK.Avatars.Menus {
 		/// <summary>
 		/// Menu entry that opens a submenu (via <see cref="MenuEntry.menu"/>).
 		/// </summary>
-		Menu = 0, 
+		Menu = 0,
 
 		/// <summary>
 		/// Menu entry that controls a parameter (via <see cref="MenuEntry.parameter"/>).
@@ -16,7 +16,7 @@ namespace Nox.CCK.Avatars.Menus {
 
 		/// <summary>
 		/// Menu entry that triggers an action (via <see cref="MenuEntry.parameter"/>).
-		/// The action is triggered when the entry is clicked, 
+		/// The action is triggered when the entry is clicked,
 		/// and the parameter value (values[0]) is sent.
 		/// </summary>
 		Trigger = 2,
@@ -29,7 +29,7 @@ namespace Nox.CCK.Avatars.Menus {
 
 		/// <summary>
 		/// Menu entry that sets a value within a 2D range (via <see cref="MenuEntry.parameter"/>).
-		/// The parameter is controlled by a 2D axis 
+		/// The parameter is controlled by a 2D axis
 		/// (values[0] = StartX included, values[1] = EndX included, values[2] = StepX)
 		/// (values[3] = StartY included, values[4] = EndY included, values[5] = StepY).
 		/// </summary>
@@ -38,7 +38,7 @@ namespace Nox.CCK.Avatars.Menus {
 		/// <summary>
 		/// Menu entry that sets a value within a list of choices (via <see cref="MenuEntry.parameter"/>).
 		/// The parameter is controlled by a list of key/value pairs
-		/// (values[0] = Choice1 key, values[1] = Choice1 label, values[2] = Choice2 key, values[3] = Choice2 label, …).
+		/// (values[0] = Choice1 key, values[1] = Choice1 label, values[2] = Choice2 key, values[3] = Choice2 label, ...).
 		/// </summary>
 		Choice = 5,
 

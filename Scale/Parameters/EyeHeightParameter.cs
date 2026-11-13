@@ -1,5 +1,6 @@
 using Nox.Avatars.Parameters;
 using Nox.CCK.Network;
+using Nox.CCK.Avatars.Parameters;
 
 namespace Nox.CCK.Avatars.Scale {
 	/// <summary>
@@ -13,13 +14,19 @@ namespace Nox.CCK.Avatars.Scale {
 	/// It is <b>local only</b>: <see cref="ScaleParameter"/> carries the value synced to viewers.
 	/// </summary>
 	public class EyeHeightParameter : IParameter {
+		/// <summary>Published by its module: this parameter does not announce a write.</summary>
+		public UnityEngine.Events.UnityEvent<IParameter> OnValueChanged => null;
 		private readonly ScaleAvatarModule _module;
 
-		public EyeHeightParameter(ScaleAvatarModule module) 
+		public EyeHeightParameter(ScaleAvatarModule module)
 			=> _module = module;
 
 		public string Name
-			=> "EyeHeight";
+			=> "Height/Eye";
+
+		/// <summary>Category shown by the parameter editors.</summary>
+		public string Category
+			=> ParameterCategory.Scale;
 
 		public int Key
 			=> Name.Hash();

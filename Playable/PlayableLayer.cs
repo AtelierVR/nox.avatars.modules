@@ -69,13 +69,16 @@ namespace Nox.CCK.Avatars.Playable {
 	}
 
 	/// <summary>
-	/// A single playable layer: an Animator Controller plus the key used to address it by name.
+	/// A single playable layer entry: an Animator Controller plus the key used to address it by name.
 	/// In the inspector you can either pick a standard name, type a custom one, or pick
 	/// <see cref="PlayableLayerNaming.Controller"/> to fall back to the controller asset name.
+	/// <para/>
+	/// Several entries may resolve to the same key (e.g. two FX controllers): they then play as one
+	/// layer, stacked in declaration order, and share that key's weight.
 	/// </summary>
 	[Serializable]
 	public class PlayableLayer {
-		[Tooltip("Animator Controller used as a playable layer.")]
+		[Tooltip("Animator Controller used as a playable layer. Entries sharing the same key are stacked into a single playable layer.")]
 		public RuntimeAnimatorController controller;
 
 		[Tooltip("How the layer key is resolved: the controller asset name, a standard name (Default/Locomotion/Calibration/FX) or a custom name.")]

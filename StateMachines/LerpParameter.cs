@@ -30,7 +30,7 @@ namespace Nox.CCK.Avatars.StateMachines {
 
 		public override void OnStateUpdate(Animator animator, AnimatorStateInfo state, int layer) {
 			base.OnStateUpdate(animator, state, layer);
-			
+
 			if (_module == null)
 				return;
 

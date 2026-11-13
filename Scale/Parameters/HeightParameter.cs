@@ -1,5 +1,6 @@
 using Nox.Avatars.Parameters;
 using Nox.CCK.Network;
+using Nox.CCK.Avatars.Parameters;
 
 namespace Nox.CCK.Avatars.Scale {
 	/// <summary>
@@ -14,6 +15,8 @@ namespace Nox.CCK.Avatars.Scale {
 	/// Setting it rescales the avatar so its height matches the requested value.
 	/// </summary>
 	public class HeightParameter : IParameter {
+		/// <summary>Published by its module: this parameter does not announce a write.</summary>
+		public UnityEngine.Events.UnityEvent<IParameter> OnValueChanged => null;
 		private readonly ScaleAvatarModule _module;
 
 		public HeightParameter(ScaleAvatarModule module)
@@ -21,6 +24,10 @@ namespace Nox.CCK.Avatars.Scale {
 
 		public string Name
 			=> "Height";
+
+		/// <summary>Category shown by the parameter editors.</summary>
+		public string Category
+			=> ParameterCategory.Scale;
 
 		public int Key
 			=> Name.Hash();

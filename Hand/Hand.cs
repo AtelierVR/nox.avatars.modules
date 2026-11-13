@@ -45,16 +45,30 @@ namespace Nox.CCK.Avatars.Hand {
 		Vector3 IHand.PositionOffset => pivotPositionOffset;
 		Quaternion IHand.RotationOffset => pivotRotationOffset;
 
-		private void OnDrawGizmos() {
+		/// <summary>Always visible part of the overlay: the discs, arrows and finger links.</summary>
+		private void OnDrawGizmos()
+			=> DrawOverlay(false);
+
+		/// <summary>Labels of the overlay, drawn only while the hand is selected so the texts do not clutter the scene.</summary>
+		private void OnDrawGizmosSelected()
+			=> DrawOverlay(true);
+
+		/// <param name="labels">Draws the texts: only when the hand is selected.</param>
+		private void DrawOverlay(bool labels) {
 			if (!this.IsValid(out var error)) {
-				Gizmos.Color = Color.red;
-				Gizmos.DrawLabel(transform.position, "Invalid Hand: " + error.Message);
+				if (labels) {
+					Gizmos.Color = Color.red;
+					Gizmos.DrawLabel(transform.position, "Invalid Hand: " + error.Message);
+				}
+
 				return;
 			}
 
 			if (!Palm) {
-				Gizmos.Color = Color.orange;
-				Gizmos.DrawLabel(transform.position, "Hand has no palm transform.");
+				if (labels) {
+					Gizmos.Color = Color.orange;
+					Gizmos.DrawLabel(transform.position, "Hand has no palm transform.");
+				}
 			} else {
 				Gizmos.Color = Color.darkGreen;
 				Gizmos.DrawWireDisc(Palm.position, Palm.rotation * Vector3.forward, 0.05f);
@@ -65,11 +79,15 @@ namespace Nox.CCK.Avatars.Hand {
 			foreach (var f in fingers) {
 				Exception fingerError = null;
 				if (!f || !f.IsValid(out fingerError)) {
-					Gizmos.Color = Color.red;
-					var pos = f ? f.transform.position : transform.position;
-					Gizmos.DrawLabel(pos, "Invalid Finger: " + (f ? fingerError!.Message : "Finger is null."));
+					if (labels) {
+						var pos = f ? f.transform.position : transform.position;
+						Gizmos.Color = Color.red;
+						Gizmos.DrawLabel(pos, "Invalid Finger: " + (f ? fingerError!.Message : "Finger is null."));
+					}
+
 					continue;
 				}
+
 				var proximal = f.Proximal
 					? f.Proximal.position
 					: f.transform.position;
@@ -92,8 +110,11 @@ namespace Nox.CCK.Avatars.Hand {
 				Gizmos.DrawArrow(pivotWorldPos, pivotWorldRot * Vector3.right, 0.04f);
 				Gizmos.Color = Color.green;
 				Gizmos.DrawArrow(pivotWorldPos, pivotWorldRot * Vector3.up, 0.04f);
-				Gizmos.Color = Color.yellow;
-				Gizmos.DrawLabel(pivotWorldPos, "Pivot");
+
+				if (labels) {
+					Gizmos.Color = Color.yellow;
+					Gizmos.DrawLabel(pivotWorldPos, "Pivot");
+				}
 			}
 		}
 
@@ -137,7 +158,7 @@ namespace Nox.CCK.Avatars.Hand {
 			foreach (var f in fingers)
 				f.SavePose(curl, false);
 			EditorUtility.SetDirty(this);
-			
+
 			Logger.Log($"Saved {curl} poses for all fingers.", this);
 		}
 

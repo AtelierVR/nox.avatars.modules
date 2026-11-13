@@ -69,7 +69,7 @@ namespace Nox.CCK.Avatars.Scale {
 
 				anchor.localScale = new Vector3(local, local, local);
 
-				// The whole skeleton just moved: tell the other modules (jiggles, …) so they rebuild from the new
+				// The whole skeleton just moved: tell the other modules (jiggles, ...) so they rebuild from the new
 				// pose instead of keeping an offset in the old world position.
 				NotifyScaleChanged(anchor.lossyScale.y);
 			}
@@ -85,7 +85,7 @@ namespace Nox.CCK.Avatars.Scale {
 			if (bus == null)
 				return;
 
-			bus.Send(ScaleChangedEvent.Name, new BusContext { 
+			bus.Send(ScaleChangedEvent.Name, new BusContext {
 				[ScaleChangedEvent.Scale] = scale
 			});
 		}
@@ -129,8 +129,9 @@ namespace Nox.CCK.Avatars.Scale {
 
 			anchorPosition = descriptor.Anchor.transform.position;
 			headPosition   = head.position;
+
 			cameraPosition = cameraModule != null
-				? headPosition + cameraModule.GetOffset()
+				? headPosition + head.TransformDirection(cameraModule.GetOffset())
 				: headPosition;
 
 			return true;
@@ -264,58 +265,86 @@ namespace Nox.CCK.Avatars.Scale {
 			return false;
 		}
 
-		public void OnDrawGizmos() {
+		/// <summary>
+		/// Always visible part of the overlay: the points, the lines between them and the height estimates. The
+		/// texts are drawn by <see cref="OnDrawGizmosSelected"/> only.
+		/// </summary>
+		public void OnDrawGizmos()
+			=> DrawMeasurement(false);
+
+		/// <summary>
+		/// Labels of the overlay, drawn only while the avatar is selected so the numbers do not clutter the
+		/// scene view of every other avatar.
+		/// </summary>
+		public void OnDrawGizmosSelected()
+			=> DrawMeasurement(true);
+
+		/// <summary>
+		/// Draws the measurement overlay in the anchor's frame: a rotated avatar is measured along its own up
+		/// axis, and the camera point follows the head's frame (see <see cref="ResolveMeasure"/>).
+		/// </summary>
+		/// <param name="labels">Draws the texts: only when the avatar is selected.</param>
+		private void DrawMeasurement(bool labels) {
 			var descriptor = _runtimeAvatar?.Descriptor ?? GetComponentInParent<IAvatarDescriptor>();
 			var anchor     = descriptor != null && descriptor.Anchor ? descriptor.Anchor.transform : transform;
 
 			if (!TryMeasure(out var anchorPosition, out var headPosition, out var cameraPosition)) {
-				Gizmos.Color = Color.orange;
-				Gizmos.DrawLabel(transform.position, $"{nameof(ScaleAvatarModule)}: no head reference found.");
+				if (labels) {
+					Gizmos.Color = Color.orange;
+					Gizmos.DrawLabel(transform.position, $"{nameof(ScaleAvatarModule)}: no head reference found.");
+				}
+
 				return;
 			}
+
+			var up = anchor.up;
 
 			var headDistance   = Vector3.Distance(anchorPosition, headPosition);
 			var eyeDistance    = Vector3.Distance(anchorPosition, cameraPosition);
 			var cameraDistance = Vector3.Distance(headPosition, cameraPosition);
 			var worldHeight    = headDistance + 2f * cameraDistance;
 
-			var top        = anchorPosition + Vector3.up * worldHeight;
+			var top        = anchorPosition + up * worldHeight;
 			var lossyScale = anchor.lossyScale.y;
 			var radius     = Mathf.Max(0.05f, Mathf.Abs(worldHeight) * 0.03f);
 
-			// Anchor (feet) reference
 			Gizmos.Color = Color.cyan;
-			Gizmos.DrawWireDisc(anchorPosition, Vector3.up, radius);
+			Gizmos.DrawWireDisc(anchorPosition, up, radius);
 
 			// Anchor -> head bone
 			Gizmos.Color = Color.yellow;
 			Gizmos.DrawLine(anchorPosition, headPosition);
 			Gizmos.DrawWireSphere(headPosition, radius * 0.5f);
-			Gizmos.DrawLabel(headPosition, $"Head bone ({headDistance:0.00} m)");
+			if (labels)
+				Gizmos.DrawLabel(headPosition, $"Head bone ({headDistance:0.00} m)");
 
-			// Head bone -> camera, mirrored past the camera to estimate the top of the skull
 			Gizmos.Color = Color.magenta;
 			Gizmos.DrawLine(headPosition, cameraPosition);
 			Gizmos.DrawWireSphere(cameraPosition, radius * 0.35f);
-			Gizmos.DrawDottedLine(headPosition, headPosition + Vector3.up * (2f * cameraDistance));
-			Gizmos.DrawLabel(cameraPosition, $"Camera ({eyeDistance:0.00} m)");
 
-			// Estimated height
+			Gizmos.DrawDottedLine(headPosition, top);
+			if (labels)
+				Gizmos.DrawLabel(cameraPosition, $"Camera ({eyeDistance:0.00} m)");
+
 			Gizmos.Color = Color.white;
 			Gizmos.DrawLine(anchorPosition, top);
-			Gizmos.DrawWireDisc(top, Vector3.up, radius * 0.5f);
+			Gizmos.DrawWireDisc(top, up, radius * 0.5f);
 
 			// Base (unscaled) height reference
 			if (lossyScale > 0.001f && !Mathf.Approximately(lossyScale, 1f)) {
 				var baseHeight = worldHeight / lossyScale;
-				var baseTop    = anchorPosition + Vector3.up * baseHeight;
+				var baseTop    = anchorPosition + up * baseHeight;
 				Gizmos.Color = new Color(0.6f, 0.6f, 0.6f, 0.85f);
 				Gizmos.DrawDottedLine(anchorPosition, baseTop);
-				Gizmos.DrawLabel(baseTop, $"Base height ({baseHeight:0.00} m)");
+				if (labels)
+					Gizmos.DrawLabel(baseTop, $"Base height ({baseHeight:0.00} m)");
 			}
 
+			if (!labels)
+				return;
+
 			Gizmos.Color = Color.white;
-			Gizmos.DrawLabel(top + Vector3.up * radius, $"Height: {worldHeight:0.00} m\nScale: {lossyScale:0.00}×");
+			Gizmos.DrawLabel(top + up * radius, $"Height: {worldHeight:0.00} m\nScale: {lossyScale:0.00}×");
 		}
 
 		public float Height {

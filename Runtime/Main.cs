@@ -10,6 +10,7 @@ using Nox.CCK.Avatars.Voice;
 using Nox.CCK.Mods.Cores;
 using Nox.CCK.Mods.Events;
 using Nox.CCK.Mods.Initializers;
+using Nox.CCK.Language;
 using Nox.Controllers;
 using UnityEngine;
 using Nox.Avatars.Rigging;
@@ -19,6 +20,7 @@ namespace Nox.Avatars.Modules.Runtime {
 	public class Main : IMainModInitializer, IRiggingBackendRegistry {
 		internal static IMainModCoreAPI CoreAPI;
 		private         EventSubscription[] _events;
+		private         LanguagePack        _lang;
 
 		internal static IControllerAPI ControllerAPI
 			=> CoreAPI?.ModAPI
@@ -31,6 +33,10 @@ namespace Nox.Avatars.Modules.Runtime {
 				api.EventAPI.Subscribe("avatar_check_request", OnCheckRequest),
 			};
 			PlayableAvatarModule.GetAssetController = () => CoreAPI.AssetAPI.GetAsset<RuntimeAnimatorController>("avatar:animations/Default.controller");
+
+			// Texts of the mod, from its Assets folder (see Packages/nox.avatars.modules/Assets/avatars.modules/lang.asset).
+			_lang = api.AssetAPI.GetAsset<LanguagePack>("lang.asset");
+			LanguageManager.AddPack(_lang);
 
 			CoreAPI.LoggerAPI.LogDebug("Avatar modules initialized.");
 		}
@@ -56,6 +62,8 @@ namespace Nox.Avatars.Modules.Runtime {
 
 		public void OnDisposeMain() {
 			RiggingBackendRegistry.Clear();
+			LanguageManager.RemovePack(_lang);
+			_lang = null;
 			foreach (var e in _events)
 				CoreAPI.EventAPI.Unsubscribe(e);
 			_events                                 = Array.Empty<EventSubscription>();

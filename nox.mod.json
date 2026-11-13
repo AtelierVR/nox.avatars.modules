@@ -37,6 +37,12 @@
       "register": "git+https://github.com/AtelierVR/nox.controllers.git"
     },
     {
+      "id": "sessions",
+      "type": "depends",
+      "version": ">=1.0.0",
+      "register": "git+https://github.com/AtelierVR/nox.sessions.git"
+    },
+    {
       "id": "com.unity.modules.uielements",
       "type": "depends",
       "register": "upm+com.unity.modules.uielements@1.0.0"
@@ -55,6 +61,10 @@
     {
       "type": "after",
       "id": "controllers"
+    },
+    {
+      "type": "after",
+      "id": "sessions"
     }
   ],
   "entrypoints": {

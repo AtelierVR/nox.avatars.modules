@@ -1,7 +1,8 @@
-{
+﻿{
   "name": "Nox.Avatars.Modules.Runtime",
   "rootNamespace": "",
   "references": [
+    "Nox.CCK.Assets",
     "UniTask",
     "Nox.CCK",
     "Nox.UI",

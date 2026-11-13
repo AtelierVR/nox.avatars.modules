@@ -45,6 +45,8 @@ public async UniTask<bool> Setup(IRuntimeAvatar runtimeAvatar, AvatarModulePhase
 			if (!headTransform)
 				headTransform = descriptor.Anchor.transform;
 
+			// An offset set on the prefab is the one the author placed (in the scene with the handle): it is
+			// never overridden. The module only derives it from the eyes when it is left empty.
 			if (cameraOffset != Vector3.zero)
 				return true;
 
