@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using Nox.CCK.Avatars.Playable;
+using Nox.CCK.Editor;
+using Nox.Search;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEditor.UIElements;
@@ -9,24 +11,31 @@ using UnityEngine.Playables;
 using UnityEngine.UIElements;
 
 namespace Nox.CCK.Avatars.Modules.Editor {
-	[CustomEditor(typeof(PlayableAvatarModule))]
-	public class PlayableAvatarModuleEditor : UnityEditor.Editor {
-		private PlayableAvatarModule _module;
-		private VisualElement        _root;
-		private Label                _infoLabel;
-		private VisualElement        _playablesContainer;
-		private PropertyField        _controllersProperty;
+	/// <summary>Inspector of the playable module: the layer controllers, and their weights while the avatar runs.</summary>
+	public class PlayableAvatarModuleEditor : LocalizedInspectorEditor<PlayableAvatarModule> {
+		/// <summary>Icon of the component: the « animation » glyph rendered in the assets of the <c>ui</c> mod.</summary>
+		protected override ResourceTextureSource Icon
+			=> "ui:icons/playable.png";
 
-		private Dictionary<string, LayerTracker> _layerTrackers           = new();
+		protected override string TitleKey
+			=> "avatars.modules.playable.inspector.title";
+
+		private PlayableAvatarModule _module;
+		private VisualElement _root;
+		private Label _infoLabel;
+		private VisualElement _playablesContainer;
+		private PropertyField _controllersProperty;
+
+		private Dictionary<string, LayerTracker> _layerTrackers = new();
 		private Dictionary<int, ControllerTracker> _controllerTrackers = new();
-		private bool                             _isPlaying;
+		private bool _isPlaying;
 
 		// Structure pour tracker les valeurs des layers
 		private class LayerTracker {
 			public Label WeightLabel;
 			public Label StateLabel;
 			public float LastWeight;
-			public int   LastStateHash;
+			public int LastStateHash;
 		}
 
 		// Structure pour tracker le poids global d'un controller playable
@@ -36,6 +45,13 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 		}
 
 		public override VisualElement CreateInspectorGUI() {
+			var root = base.CreateInspectorGUI();
+			if (Content == null)
+				return root;
+
+			// The GUI is rebuilt on every hierarchy change while the base keeps its root: never add twice.
+			Content.Clear();
+
 			_module = (PlayableAvatarModule)target;
 
 			// Charger le UXML
@@ -46,12 +62,14 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 
 				// Récupérer les éléments
 				_controllersProperty = _root.Q<PropertyField>("controllers-property");
-				_infoLabel           = _root.Q<Label>("info-label");
-				_playablesContainer  = _root.Q<VisualElement>("playables-container");
+				_infoLabel = _root.Q<Label>("info-label");
+				_playablesContainer = _root.Q<VisualElement>("playables-container");
 			} else {
 				// Fallback: créer l'interface manuellement si UXML non disponible
 				_root = CreateManualUI();
 			}
+
+			Content.Add(_root);
 
 			// Bind la propriété
 			_controllersProperty.BindProperty(serializedObject.FindProperty("controllers"));
@@ -68,7 +86,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			// S'abonner aux changements de mode Play
 			EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
 
-			return _root;
+			return root;
 		}
 
 		private VisualElement CreateManualUI() {
@@ -78,33 +96,33 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			// Header
 			var header = new VisualElement();
 			header.style.backgroundColor = new Color(0, 0, 0, 0.1f);
-			header.style.paddingTop      = header.style.paddingBottom = header.style.paddingLeft = header.style.paddingRight = 10;
-			header.style.marginBottom    = 10;
+			header.style.paddingTop = header.style.paddingBottom = header.style.paddingLeft = header.style.paddingRight = 10;
+			header.style.marginBottom = 10;
 			header.style.borderTopLeftRadius = header.style.borderTopRightRadius =
 				header.style.borderBottomLeftRadius = header.style.borderBottomRightRadius = 5;
 
 			var headerLabel = new Label("Playable Avatar Module");
-			headerLabel.style.fontSize                = 14;
+			headerLabel.style.fontSize = 14;
 			headerLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
-			headerLabel.style.unityTextAlign          = TextAnchor.MiddleCenter;
+			headerLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
 			header.Add(headerLabel);
 			root.Add(header);
 
 			// add mini text for warn about manual ui
 			var warnLabel = new Label("UXML resource not found. Using manual UI layout.");
-			warnLabel.style.fontSize                = 10;
+			warnLabel.style.fontSize = 10;
 			warnLabel.style.unityFontStyleAndWeight = FontStyle.Italic;
-			warnLabel.style.unityTextAlign          = TextAnchor.MiddleCenter;
-			warnLabel.style.marginBottom            = 10;
+			warnLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
+			warnLabel.style.marginBottom = 10;
 			root.Add(warnLabel);
 
 			// Content container
-			var content                                            = new VisualElement();
+			var content = new VisualElement();
 			content.style.paddingTop = content.style.paddingBottom = content.style.paddingLeft = content.style.paddingRight = 10;
 
 			// Controllers property
-			_controllersProperty       = new PropertyField();
-			_controllersProperty.name  = "controllers-property";
+			_controllersProperty = new PropertyField();
+			_controllersProperty.name = "controllers-property";
 			_controllersProperty.label = "Controllers";
 			content.Add(_controllersProperty);
 
@@ -113,7 +131,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			runtimeSection.style.marginTop = 10;
 
 			// Info label
-			_infoLabel                       = new Label();
+			_infoLabel = new Label();
 			_infoLabel.style.backgroundColor = new Color(0.39f, 0.59f, 1f, 0.1f);
 			_infoLabel.style.borderTopColor = _infoLabel.style.borderBottomColor =
 				_infoLabel.style.borderLeftColor = _infoLabel.style.borderRightColor = new Color(0.39f, 0.59f, 1f, 0.5f);
@@ -122,12 +140,12 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			_infoLabel.style.borderTopLeftRadius = _infoLabel.style.borderTopRightRadius =
 				_infoLabel.style.borderBottomLeftRadius = _infoLabel.style.borderBottomRightRadius = 3;
 			_infoLabel.style.paddingTop = _infoLabel.style.paddingBottom = _infoLabel.style.paddingLeft = _infoLabel.style.paddingRight = 8;
-			_infoLabel.style.marginTop  = _infoLabel.style.marginBottom  = 5;
+			_infoLabel.style.marginTop = _infoLabel.style.marginBottom = 5;
 			runtimeSection.Add(_infoLabel);
 
 			// Playables container
-			_playablesContainer                 = new ScrollView();
-			_playablesContainer.name            = "playables-container";
+			_playablesContainer = new ScrollView();
+			_playablesContainer.name = "playables-container";
 			_playablesContainer.style.marginTop = 10;
 			runtimeSection.Add(_playablesContainer);
 
@@ -156,7 +174,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 
 		private void UpdateRuntimeSection() {
 			if (!Application.isPlaying) {
-				_infoLabel.text          = "Entrez en mode Play pour voir les Controller Playables.";
+				_infoLabel.text = "Entrez en mode Play pour voir les Controller Playables.";
 				_infoLabel.style.display = DisplayStyle.Flex;
 				_playablesContainer.Clear();
 				_layerTrackers.Clear();
@@ -164,24 +182,24 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 				return;
 			}
 
-			var desc     = _module.Descriptor;
+			var desc = _module.Descriptor;
 			var animator = desc?.Animator;
 
 			if (!animator) {
-				_infoLabel.text          = "Aucun animateur disponible.";
+				_infoLabel.text = "Aucun animateur disponible.";
 				_infoLabel.style.display = DisplayStyle.Flex;
 				_playablesContainer.Clear();
 				return;
 			}
 
 			if (_module.ControllerPlayables is not { Length: > 0 }) {
-				_infoLabel.text          = "Aucun Controller Playable disponible.";
+				_infoLabel.text = "Aucun Controller Playable disponible.";
 				_infoLabel.style.display = DisplayStyle.Flex;
 				_playablesContainer.Clear();
 				return;
 			}
 
-			_infoLabel.text          = $"Controller Playables: {_module.ControllerPlayables.Length}";
+			_infoLabel.text = $"Controller Playables: {_module.ControllerPlayables.Length} (layers: {_module.LayerCount})";
 			_infoLabel.style.display = DisplayStyle.Flex;
 
 			// Créer l'interface pour chaque controller
@@ -203,37 +221,50 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			box.AddToClassList("controller-box");
 
 			// Récupérer le nom du controller
-			var layer = ctrl < _module.controllers.Length 
-				? _module.controllers[ctrl] 
+			var layer = ctrl < _module.controllers.Length
+				? _module.controllers[ctrl]
 				: null;
-			var name = layer?.controller 
-				? layer.controller.name 
+			var name = layer?.controller
+				? layer.controller.name
 				: "Unknown";
-			var key       = layer?.Key;
+			var key = layer?.Key;
+
+			// The header weight is the weight of the layer (key) owning this controller entry: several
+			// entries may share a key, in which case they all report the same layer weight.
+			var playableLayer = _module.GetLayerIndexForController(ctrl);
+			var controllerTotal = _module.GetControllerCount(playableLayer);
+			var controllerPos = 0;
+			for (var i = 0; i < controllerTotal; i++)
+				if (_module.GetControllerEntry(playableLayer, i) == ctrl) {
+					controllerPos = i;
+					break;
+				}
 
 			var header = new Label(string.IsNullOrEmpty(key)
 				? $"#{ctrl} {name}"
-				: $"#{ctrl} {key} ({name})");
+				: controllerTotal > 1
+					? $"#{ctrl} {key} ({name}) · {controllerPos + 1}/{controllerTotal}"
+					: $"#{ctrl} {key} ({name})");
 			header.AddToClassList("controller-header");
 
 			// Poids du controller playable (poids du mixer, piloté par PlayableLayerControl),
 			// aligné à droite du header.
-			float weight = _module.GetLayerWeight(ctrl);
-			var   label  = new Label($"{weight:F3}");
+			float weight = _module.GetLayerWeight(playableLayer);
+			var label = new Label($"{weight:F3}");
 			label.AddToClassList("controller-weight");
 
 			var row = new VisualElement();
 			row.AddToClassList("controller-header-row");
-			row.style.flexDirection  = FlexDirection.Row;
+			row.style.flexDirection = FlexDirection.Row;
 			row.style.justifyContent = Justify.SpaceBetween;
-			row.style.alignItems     = Align.Center;
+			row.style.alignItems = Align.Center;
 			row.Add(header);
 			row.Add(label);
 			box.Add(row);
 
 			_controllerTrackers[ctrl] = new ControllerTracker {
 				WeightLabel = label,
-				LastWeight  = weight
+				LastWeight = weight
 			};
 
 			var layerCount = playable.GetLayerCount();
@@ -264,14 +295,14 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 
 			// State
 			var currentState = controllerPlayable.GetCurrentAnimatorStateInfo(layerIndex);
-			var stateName    = GetStateName(currentState, ctrlIndex, layerIndex);
-			var stateLabel   = new Label(stateName);
+			var stateName = GetStateName(currentState, ctrlIndex, layerIndex);
+			var stateLabel = new Label(stateName);
 			stateLabel.AddToClassList("layer-state");
 			row.Add(stateLabel);
 
-			float weight      = controllerPlayable.GetLayerWeight(layerIndex)
-				* _module.GetLayerWeight(ctrlIndex);
-			var   weightLabel = new Label($"{weight:F3}");
+			float weight = controllerPlayable.GetLayerWeight(layerIndex)
+				* _module.GetLayerWeight(_module.GetLayerIndexForController(ctrlIndex));
+			var weightLabel = new Label($"{weight:F3}");
 			weightLabel.AddToClassList("layer-weight");
 			row.Add(weightLabel);
 
@@ -280,9 +311,9 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			// Tracker pour ce layer
 			var trackerKey = $"{ctrlIndex}_{layerIndex}";
 			_layerTrackers[trackerKey] = new LayerTracker {
-				WeightLabel   = weightLabel,
-				StateLabel    = stateLabel,
-				LastWeight    = weight,
+				WeightLabel = weightLabel,
+				StateLabel = stateLabel,
+				LastWeight = weight,
 				LastStateHash = currentState.shortNameHash
 			};
 		}
@@ -336,10 +367,10 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			for (var ctrlIndex = 0; ctrlIndex < _module.ControllerPlayables.Length; ctrlIndex++) {
 				// Poids global du controller playable (modifiable via PlayableLayerControl)
 				if (_controllerTrackers.TryGetValue(ctrlIndex, out var controllerTracker)) {
-					float controllerWeight = _module.GetLayerWeight(ctrlIndex);
+					float controllerWeight = _module.GetLayerWeight(_module.GetLayerIndexForController(ctrlIndex));
 					if (System.Math.Abs(controllerTracker.LastWeight - controllerWeight) > 0.001f) {
 						controllerTracker.WeightLabel.text = $"{controllerWeight:F3}";
-						controllerTracker.LastWeight       = controllerWeight;
+						controllerTracker.LastWeight = controllerWeight;
 					}
 				}
 
@@ -355,21 +386,21 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 						continue;
 
 					// Récupérer les valeurs actuelles (poids effectif = mixer × layer interne)
-					float weight       = controllerPlayable.GetLayerWeight(layerIndex)
-						* _module.GetLayerWeight(ctrlIndex);
-					var   currentState = controllerPlayable.GetCurrentAnimatorStateInfo(layerIndex);
-					int   stateHash    = currentState.shortNameHash;
+					float weight = controllerPlayable.GetLayerWeight(layerIndex)
+						* _module.GetLayerWeight(_module.GetLayerIndexForController(ctrlIndex));
+					var currentState = controllerPlayable.GetCurrentAnimatorStateInfo(layerIndex);
+					int stateHash = currentState.shortNameHash;
 
 					// Mettre à jour uniquement ce qui a changé
 					if (System.Math.Abs(tracker.LastWeight - weight) > 0.001f) {
 						tracker.WeightLabel.text = $"{weight:F3}";
-						tracker.LastWeight       = weight;
+						tracker.LastWeight = weight;
 					}
 
 					if (tracker.LastStateHash != stateHash) {
 						var stateName = GetStateName(currentState, ctrlIndex, layerIndex);
 						tracker.StateLabel.text = stateName;
-						tracker.LastStateHash   = stateHash;
+						tracker.LastStateHash = stateHash;
 					}
 				}
 			}

@@ -7,7 +7,6 @@ using UnityEngine.UIElements;
 
 namespace Nox.CCK.Avatars.Modules.Editor
 {
-	[CustomEditor(typeof(AvatarMenu))]
 	public class AvatarMenuEditor : InspectorEditor<AvatarMenu>
 	{
 		private VisualElement _base;

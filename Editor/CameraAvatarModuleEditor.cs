@@ -1,82 +1,139 @@
 using Nox.Avatars;
 using Nox.CCK.Avatars.Camera;
+using Nox.CCK.Editor;
+using Nox.CCK.Language;
+using Nox.Search;
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Nox.CCK.Avatars.Modules.Editor {
-	[CustomEditor(typeof(CameraAvatarModule))]
-	public class CameraAvatarModuleEditor : UnityEditor.Editor {
-		private CameraAvatarModule module
-			=> (CameraAvatarModule)target;
+	/// <summary>
+	/// Inspector of the camera module: the bone the camera is attached to, and the offset added to it.
+	/// <para>
+	/// The offset can be dragged in the scene (<see cref="OnSceneGUI"/>) while the « Edit » button is on, which is
+	/// why the button sits next to the field instead of being a toolbar of its own.
+	/// </para>
+	/// </summary>
+	public class CameraAvatarModuleEditor : LocalizedInspectorEditor<CameraAvatarModule> {
+		/// <summary>Prefix of the language entries of this inspector (see the mod lang.asset).</summary>
+		private const string LangPrefix = "avatars.modules.camera.inspector";
 
-		private bool isEditingOffset = false;
+		/// <summary>Icon of the component: the « videocam » glyph rendered in the assets of the <c>ui</c> mod.</summary>
+		protected override ResourceTextureSource Icon
+			=> "ui:icons/camera.png";
 
-		public override void OnInspectorGUI() {
-			DrawHeadTransformField();
-			DrawOffsetField();
+		protected override string TitleKey
+			=> LangPrefix + ".title";
 
+		private IAvatarDescriptor Descriptor
+			=> Target.GetComponentInParent<IAvatarDescriptor>();
+
+		/// <summary>Whether the offset handle is drawn in the scene.</summary>
+		private bool _editingOffset;
+
+		/// <summary>The button toggling <see cref="_editingOffset"/>; its text is localized.</summary>
+		private Button _edit;
+
+		public override VisualElement CreateInspectorGUI() {
+			var root = base.CreateInspectorGUI();
+			if (Content == null)
+				return root;
+
+			// The GUI is rebuilt on every hierarchy change while the base keeps its root: never add twice.
+			Content.Clear();
+
+			var uxml = Resources.Load<VisualTreeAsset>(nameof(CameraAvatarModuleEditor));
+			if (uxml == null) {
+				Content.Add(new Label($"The {nameof(CameraAvatarModuleEditor)} uxml template is not found in Resources."));
+				return root;
+			}
+
+			var ui = uxml.CloneTree();
+			Content.Add(ui);
+
+			// Fields are bound by name: an InspectorElement(serializedObject) would run this very editor again.
+			BindField(ui, nameof(CameraAvatarModule.headTransform));
+			BindField(ui, nameof(CameraAvatarModule.cameraOffset));
+
+			if (ui.Q<Button>("detect") is { } detect)
+				detect.clicked += DetectHead;
+
+			_edit = ui.Q<Button>("edit");
+			if (_edit != null) {
+				_edit.clicked += ToggleOffsetEditing;
+				RefreshEdit();
+			}
+
+			return root;
+		}
+
+		private void BindField(VisualElement root, string propertyName) {
+			var field    = root.Q<PropertyField>(propertyName);
+			var property = serializedObject.FindProperty(propertyName);
+			if (field != null && property != null)
+				field.BindProperty(property);
+		}
+
+		/// <summary>Picks the head bone of the animator of the avatar, so it does not have to be dragged in.</summary>
+		private void DetectHead() {
+			var head = Descriptor?.Animator?.GetBoneTransform(HumanBodyBones.Head);
+			if (head == null)
+				return;
+
+			var property = serializedObject.FindProperty(nameof(CameraAvatarModule.headTransform));
+
+			serializedObject.Update();
+			property.objectReferenceValue = head;
 			serializedObject.ApplyModifiedProperties();
 		}
 
-		// ReSharper disable Unity.PerformanceAnalysis
-		private IAvatarDescriptor GetDescriptor()
-			=> module.GetComponentInParent<IAvatarDescriptor>();
+		private void ToggleOffsetEditing() {
+			_editingOffset = !_editingOffset;
 
-		private void DrawHeadTransformField() {
-			EditorGUILayout.BeginHorizontal();
-
-			EditorGUILayout.PropertyField(serializedObject.FindProperty("headTransform"));
-
-			if (GUILayout.Button("Detect", GUILayout.Width(64))) {
-				var head = GetDescriptor().Animator
-					?.GetBoneTransform(HumanBodyBones.Head);
-				serializedObject.FindProperty("headTransform").objectReferenceValue = head;
-			}
-
-			EditorGUILayout.EndHorizontal();
+			RefreshEdit();
+			SceneView.RepaintAll();
 		}
 
-		private void DrawOffsetField() {
-			EditorGUILayout.BeginHorizontal();
-
-			// Show the property field
-			EditorGUILayout.PropertyField(serializedObject.FindProperty("cameraOffset"));
-
-			// Toggle button for editing mode
-			string buttonText = isEditingOffset ? "Done" : "Edit";
-			if (GUILayout.Button(buttonText, GUILayout.Width(64))) {
-				isEditingOffset = !isEditingOffset;
-				SceneView.RepaintAll();
-			}
-
-			EditorGUILayout.EndHorizontal();
+		/// <summary>The button says what it does next: edit, or be done editing.</summary>
+		private void RefreshEdit() {
+			if (_edit != null)
+				_edit.text = LanguageManager.Get(LangPrefix + (_editingOffset ? ".done" : ".edit"));
 		}
 
+		/// <summary>Texts the markup cannot localize by itself: the toggle of the offset handle.</summary>
+		protected override void LocalizeTexts() {
+			base.LocalizeTexts();
+			RefreshEdit();
+		}
+
+		/// <summary>Handle of the offset in the scene, so it can be placed by looking at the avatar.</summary>
 		private void OnSceneGUI() {
-			if (!isEditingOffset || !module) return;
+			if (!_editingOffset)
+				return;
 
-			// Get the head transform position as the base
-			var basePosition = module.headTransform
-				? module.headTransform.position
-				: module.transform.position;
+			var module = Target;
+			if (!module)
+				return;
 
-			// Draw and handle the offset gizmo
+			var head     = module.headTransform
+				? module.headTransform
+				: module.transform;
+			var origin   = head.position;
+			var rotation = head.rotation;
+
 			EditorGUI.BeginChangeCheck();
-			var newOffset = Handles.PositionHandle(basePosition + module.cameraOffset, Quaternion.identity) - basePosition;
+			var point = Handles.PositionHandle(origin + rotation * module.cameraOffset, rotation);
 
 			if (EditorGUI.EndChangeCheck()) {
 				Undo.RecordObject(module, "Change Camera Offset");
-				module.cameraOffset = newOffset;
+				module.cameraOffset = Quaternion.Inverse(rotation) * (point - origin);
 				EditorUtility.SetDirty(module);
 			}
 
-			// Draw a line from base position to offset position
 			Handles.color = Color.cyan;
-			Handles.DrawLine(basePosition, basePosition + module.cameraOffset);
-
-			// Draw labels
-			Handles.Label(basePosition, "Head Position");
-			Handles.Label(basePosition + module.cameraOffset, "Camera Position");
+			Handles.DrawLine(origin, origin + rotation * module.cameraOffset);
 		}
 	}
 }

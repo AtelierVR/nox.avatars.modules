@@ -155,7 +155,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			_parametersList[index].type = newType;
 
 			if (oldType != newType) {
-				_parametersList[index].defaultValue = string.Empty;
+				_parametersList[index].value = string.Empty;
 				_listView.RefreshItems();
 			}
 
@@ -164,9 +164,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 
 		private void OnFlagsChanged(ChangeEvent<Enum> evt) {
 			if (evt.target is not EnumFlagsField { userData: int index } || index >= _parametersList.Count) return;
-			var flags = (ParameterFlags)evt.newValue;
-			_parametersList[index].flags  = flags;
-			_parametersList[index].synced = (flags & ParameterFlags.OwnerSyncsToViewers) != 0;
+			_parametersList[index].flags = (ParameterFlags)evt.newValue;
 			SaveChangesInternal();
 		}
 
@@ -186,11 +184,10 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 		// Callbacks pour ajouter et supprimer des paramètres
 		private void OnAddParameter() {
 			var newParameter = new ParameterEntry {
-				name         = "New Parameter",
-				type         = ParameterType.Bool,
-				defaultValue = string.Empty,
-				synced       = true,
-				flags        = ParameterFlags.OwnerBroadcast
+				name  = "New Parameter",
+				type  = ParameterType.Bool,
+				value = string.Empty,
+				flags = ParameterFlags.OwnerBroadcast
 			};
 
 			_parametersList.Add(newParameter);

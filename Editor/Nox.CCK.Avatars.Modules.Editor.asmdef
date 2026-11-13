@@ -9,7 +9,10 @@
     "Nox.CCK.Avatars.EyeLooks",
     "Nox.CCK.Avatars.Parameters",
     "Nox.CCK.Avatars.Rigging",
+    "Nox.Avatars.Rigging",
+    "Nox.CCK.Entities",
     "Nox.CCK.Avatars.Camera",
+    "Nox.Avatars.Camera",
     "Nox.Avatars.Parameters",
     "Nox.CCK.Avatars.Playable",
     "Nox.CCK.Avatars.Menus",
@@ -20,7 +23,10 @@
     "Nox.CCK.Avatars.Scale",
     "Nox.CCK.Avatars",
     "Nox.CCK.Editor",
-    "Nox.Avatars.Editor"
+    "Nox.Avatars.Editor",
+    "Nox.Assets.Editor",
+    "Nox.CCK.Avatars.Proxies",
+    "Nox.Avatars.Modules.Runtime"
   ],
   "includePlatforms": [
     "Editor"

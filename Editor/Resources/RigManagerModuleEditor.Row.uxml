@@ -1,0 +1,16 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements"
+         xsi="http://www.w3.org/2001/XMLSchema-instance"
+         engine="UnityEngine.UIElements" editor="UnityEditor.UIElements">
+
+    <!-- One line of a list of the panel (an IK target, a backend).
+         The name is a language entry formatted with the name of the entry, the state is a language
+         entry of its own (so it follows the language changes). The name takes the remaining width
+         (value-row-fill) so the badge of the row stays on the right.
+         The look comes from the shared styles (nox.cck/Resources/styles/value.uss).
+         Cloned by RigManagerModuleEditor for every entry of the lists. -->
+    <ui:VisualElement name="row" class="value-row">
+        <uie:LocalizedLabel name="label-row" class="value-row-name value-row-fill" />
+        <uie:LocalizedLabel name="label-state" class="value-row-state" />
+    </ui:VisualElement>
+
+</ui:UXML>

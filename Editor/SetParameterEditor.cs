@@ -24,6 +24,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 		private double doubleValue = 0.0;
 		private Vector3 vector3Value = Vector3.zero;
 		private Quaternion quaternionValue = Quaternion.identity;
+		private Color colorValue = Color.clear;
 
 		private void OnEnable() {
 			keyProperty = serializedObject.FindProperty("key");
@@ -95,6 +96,9 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 				case ParameterType.Quaternion:
 					quaternionValue = Quaternion.Euler(EditorGUILayout.Vector3Field("Quaternion (Euler)", quaternionValue.eulerAngles));
 					break;
+				case ParameterType.Color:
+					colorValue = EditorGUILayout.ColorField("Color Value", colorValue);
+					break;
 				case ParameterType.ByteArray:
 					EditorGUILayout.HelpBox("Byte Array editing not supported in inspector. Use code to set values.", MessageType.Info);
 					break;
@@ -145,6 +149,9 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 				case ParameterType.Quaternion:
 					setParameter.SetValue(quaternionValue);
 					break;
+				case ParameterType.Color:
+					setParameter.SetValue(colorValue);
+					break;
 			}
 		}
 
@@ -193,6 +200,9 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 						break;
 					case ParameterType.Quaternion:
 						quaternionValue = setParameter.GetValue<Quaternion>();
+						break;
+					case ParameterType.Color:
+						colorValue = setParameter.GetValue<Color>();
 						break;
 				}
 			} catch {

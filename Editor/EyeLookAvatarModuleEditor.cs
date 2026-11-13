@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Nox.Avatars;
 using Nox.CCK.Avatars.EyeLooks;
+using Nox.CCK.Editor;
+using Nox.Search;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -11,8 +13,15 @@ using UnityEngine.UIElements;
 using Logger = Nox.CCK.Utils.Logger;
 
 namespace Nox.CCK.Avatars.Modules.Editor {
-	[CustomEditor(typeof(EyeLookAvatarModule))]
-	public class EyeLookAvatarModuleEditor : UnityEditor.Editor {
+	/// <summary>Inspector of the eye look module: the eye looks of the avatar, each one drawn by its own editor.</summary>
+	public class EyeLookAvatarModuleEditor : LocalizedInspectorEditor<EyeLookAvatarModule> {
+		/// <summary>Icon of the component: the « visibility » glyph rendered in the assets of the <c>ui</c> mod.</summary>
+		protected override ResourceTextureSource Icon
+			=> "ui:icons/eye_looks.png";
+
+		protected override string TitleKey
+			=> "avatars.modules.eye_looks.inspector.title";
+
 		private VisualElement _root;
 		private ListView      _eyeLookList;
 		private ToolbarMenu   _addMenu;
@@ -41,19 +50,29 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 		}
 
 		public override VisualElement CreateInspectorGUI() {
+			var root = base.CreateInspectorGUI();
+			if (Content == null)
+				return root;
+
+			// The GUI is rebuilt on every hierarchy change while the base keeps its root: never add twice.
+			Content.Clear();
+
 			// Charger le fichier UXML principal
 			var visualTree = Resources.Load<VisualTreeAsset>("EyeLookAvatarModule");
 			if (!visualTree) {
 				Logger.LogError("Could not load EyeLookAvatarModule.uxml from Resources folder");
-				return new Label("Error: Could not load UI template");
+				Content.Add(new Label("Error: Could not load UI template"));
+				return root;
 			}
 
 			_root        = visualTree.CloneTree();
+			Content.Add(_root);
 			_eyeLookList = _root.Q<ListView>("eyelook-list");
 			_addMenu     = _root.Q<ToolbarMenu>("add-menu");
 			if (_addMenu == null || _eyeLookList == null) {
 				Logger.LogError("Could not find required UI elements in UXML template");
-				return new Label("Error: UI template is missing required elements");
+				Content.Add(new Label("Error: UI template is missing required elements"));
+				return root;
 			}
 
 			_addMenu.text = "Add Eye Look";
@@ -64,7 +83,7 @@ namespace Nox.CCK.Avatars.Modules.Editor {
 			_eyeLookList.bindItem     =  BindEyeLookItem;
 			_eyeLookList.itemsSource  =  module.eyeLooks?.ToList() ?? new List<BaseEyeLook>();
 			_eyeLookList.itemsRemoved += OnEyeLooksRemoved;
-			return _root;
+			return root;
 		}
 
 		private VisualElement MakeEyeLookItem() {
