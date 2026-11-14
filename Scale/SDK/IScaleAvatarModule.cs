@@ -1,4 +1,5 @@
 using Nox.Avatars.Parameters;
+using UnityEngine.Events;
 
 namespace Nox.Avatars.Scale {
 	/// <summary>
@@ -28,6 +29,12 @@ namespace Nox.Avatars.Scale {
 		/// avatar's module bus (see <see cref="IAvatarModuleBus"/>).
 		/// </summary>
 		public float Scale { get; set; }
+
+		/// <summary>
+		/// Raised with the new effective scale when the avatar is resized (see <see cref="Scale"/>), so a consumer sized
+		/// against the avatar follows it instead of polling <see cref="Height"/>.
+		/// </summary>
+		public UnityEvent<float> OnScaleChanged { get; }
 
 		/// <summary>
 		/// Height of the model without its scale, in metres: what the avatar would measure with a scale of 1.

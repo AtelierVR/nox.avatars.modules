@@ -7,7 +7,9 @@ using Nox.Avatars.Camera;
 using Nox.Avatars.Parameters;
 using Nox.Avatars.Scale;
 using Nox.CCK.Development;
+using Nox.CCK.Events;
 using UnityEngine;
+using UnityEngine.Events;
 using Gizmos = Nox.CCK.Development.Gizmos;
 using Logger = Nox.CCK.Utils.Logger;
 
@@ -56,6 +58,9 @@ namespace Nox.CCK.Avatars.Scale {
 		/// Assigning it rescales the avatar so its effective scale matches the requested value; the parent
 		/// scale is divided out because <c>localScale</c> is parent-relative.
 		/// </summary>
+		/// <summary>Raised with the new effective scale when the avatar is resized (see <see cref="Scale"/>).</summary>
+		public UnityEvent<float> OnScaleChanged { get; } = new NoxEvent<float>();
+
 		public float Scale {
 			get => _runtimeAvatar.Descriptor.Anchor.transform.lossyScale.y;
 			set {
@@ -81,6 +86,8 @@ namespace Nox.CCK.Avatars.Scale {
 		/// this one.
 		/// </summary>
 		private void NotifyScaleChanged(float scale) {
+			OnScaleChanged.Invoke(scale);
+
 			var bus = _runtimeAvatar?.Bus;
 			if (bus == null)
 				return;
