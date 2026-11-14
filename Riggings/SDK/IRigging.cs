@@ -51,6 +51,16 @@ namespace Nox.Avatars.Rigging {
 		void SetExternalRootControl(bool external);
 
 		/// <summary>
+		/// Holds a reference pose instead of the animation: body upright, arms and legs straight. The root is left to
+		/// the caller (see <see cref="SetExternalRootControl"/>), which places the body where it must be seen — a taller
+		/// avatar sinks under the floor to put its head on the eyes of a shorter player. The pose is written on the bones
+		/// every frame after the animation and the solver, so it is the only way to pose a limb the avatar handed back to
+		/// the animation (a tracking mode in <see cref="RiggingTrackingMode.Animation"/> cuts the IK, so driving the IK
+		/// target would do nothing). <c>false</c> hands the bones back to the animation.
+		/// </summary>
+		bool ReferencePose { get; set; }
+
+		/// <summary>
 		/// Effective state of the bone: the avatar's tracking override when one is set
 		/// (<see cref="SetTracking"/>), otherwise the controller's own choice (<see cref="SetActive"/>),
 		/// falling back to the backend's real state when neither was set.

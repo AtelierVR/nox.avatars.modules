@@ -143,6 +143,122 @@ namespace Nox.CCK.Avatars.Rigging {
 		/// </summary>
 		public virtual void SetExternalRootControl(bool external) { }
 
+		/* ------------------------------------------------------------------ */
+		/* Reference pose                                                       */
+		/* ------------------------------------------------------------------ */
+
+		/// <summary>Spine bones, root first: only the ones the avatar exposes are used.</summary>
+		private static readonly HumanBodyBones[] SpineChain = {
+			HumanBodyBones.Hips,
+			HumanBodyBones.Spine,
+			HumanBodyBones.Chest,
+			HumanBodyBones.UpperChest,
+			HumanBodyBones.Neck,
+			HumanBodyBones.Head
+		};
+
+		private bool _referencePose;
+
+		/// <summary>
+		/// Holds a reference pose (body upright, limbs straight, feet on the ground) until it is released.
+		/// </summary>
+		public bool ReferencePose {
+			get => _referencePose;
+			set {
+				if (_referencePose == value)
+					return;
+
+				_referencePose = value;
+				Logger.LogDebug($"[Rig:{Id}] reference pose = {value}");
+
+				ApplyReferencePoseControl(value);
+
+				if (value)
+					TickReferencePose();
+				else
+					ReapplyActive();
+			}
+		}
+
+		/// <summary>
+		/// Backend hook called when the reference pose is taken and released. A backend whose solver poses the body
+		/// on its own (FinalIK solves the spine towards the head target) cuts it here, otherwise the solver would
+		/// fold the avatar again on its next late update.
+		/// </summary>
+		protected virtual void ApplyReferencePoseControl(bool enabled) { }
+
+		/// <summary>
+		/// Writes the reference pose on the bones. Called by <see cref="RigManagerModule"/> at the very end of its
+		/// late update, after the animation and after the backend wrote its own bones, so the pose wins over both.
+		/// </summary>
+		public void TickReferencePose() {
+			if (!_referencePose)
+				return;
+
+			var anchor = Descriptor?.Anchor?.transform;
+			if (!anchor)
+				return;
+
+			var up    = anchor.up;
+			var right = anchor.right;
+
+			AlignSpine(up);
+
+			StraightenLimb(HumanBodyBones.LeftUpperLeg,  HumanBodyBones.LeftLowerLeg,  HumanBodyBones.LeftFoot,  -up);
+			StraightenLimb(HumanBodyBones.RightUpperLeg, HumanBodyBones.RightLowerLeg, HumanBodyBones.RightFoot, -up);
+			StraightenLimb(HumanBodyBones.LeftUpperArm,  HumanBodyBones.LeftLowerArm,  HumanBodyBones.LeftHand,  -right);
+			StraightenLimb(HumanBodyBones.RightUpperArm, HumanBodyBones.RightLowerArm, HumanBodyBones.RightHand, right);
+		}
+
+		/// <summary>
+		/// Turns every spine bone so the next one sits directly above it: the body stops bending, whatever the rest
+		/// pose of the avatar and the muscle values a humanoid clip leaves on it.
+		/// </summary>
+		private void AlignSpine(Vector3 up) {
+			Transform previous = null;
+
+			foreach (var bone in SpineChain) {
+				var current = GetBone(bone);
+				if (!current)
+					continue;
+
+				if (previous) {
+					var segment = current.position - previous.position;
+					if (segment.sqrMagnitude > 0.0001f)
+						previous.rotation = Quaternion.FromToRotation(segment.normalized, up.normalized) * previous.rotation;
+				}
+
+				previous = current;
+			}
+		}
+
+		/// <summary>
+		/// Points a two bone limb along <paramref name="direction"/> and aligns its second segment on the first: the
+		/// knee or the elbow stops bending and the limb takes the shape of the reference pose, keeping its length.
+		/// </summary>
+		private void StraightenLimb(HumanBodyBones root, HumanBodyBones middle, HumanBodyBones end, Vector3 direction) {
+			var upper = GetBone(root);
+			var mid   = GetBone(middle);
+			var tip   = GetBone(end);
+			if (!upper || !mid || !tip || direction.sqrMagnitude < 0.0001f)
+				return;
+
+			var origin  = upper.position;
+			var current = mid.position - origin;
+			if (current.sqrMagnitude < 0.0001f)
+				return;
+
+			upper.rotation = Quaternion.FromToRotation(current.normalized, direction.normalized) * upper.rotation;
+
+			var pivot   = mid.position;
+			var segment = tip.position - pivot;
+			var aligned = pivot - origin;
+			if (segment.sqrMagnitude < 0.0001f || aligned.sqrMagnitude < 0.0001f)
+				return;
+
+			mid.rotation = Quaternion.FromToRotation(segment.normalized, aligned.normalized) * mid.rotation;
+		}
+
 		/// <summary>
 		/// Called every frame by <see cref="RigManagerModule"/> from its own <c>LateUpdate</c>, i.e. after the
 		/// Animator, the animation graph and the backend's solver evaluated.

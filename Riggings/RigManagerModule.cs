@@ -87,8 +87,13 @@ namespace Nox.CCK.Avatars.Rigging {
 		/// Forwards the late update to the active rig: it runs after the Animator (and the animation graph)
 		/// evaluated, which is the only point where a backend can still write a bone the animation drives.
 		/// </summary>
-		private void LateUpdate()
-			=> (_rig as BaseRigging)?.LateUpdate();
+		private void LateUpdate() {
+			if (_rig is not BaseRigging rig)
+				return;
+
+			rig.LateUpdate();
+			rig.TickReferencePose();
+		}
 
 		/// <summary>Creates the rig for the given backend and stores it as the active rig.</summary>
 		private bool CreateRig(IRiggingBackend backend) {
