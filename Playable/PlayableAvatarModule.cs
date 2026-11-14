@@ -539,7 +539,7 @@ namespace Nox.CCK.Avatars.Playable {
 
 		/// <summary>
 		/// Sets the weight of a playable layer, optionally blending to it over <paramref name="blendDuration"/> seconds.
-		/// Layer 0 is the base layer but, unlike VRChat, it can also be blended down like any other layer
+		/// Layer 0 is the base layer but it can also be blended down like any other layer
 		/// (e.g. to reveal a T-pose/calibration pose on top of it).
 		/// </summary>
 		public void SetLayerWeight(int layer, float weight, float blendDuration = 0f) {
