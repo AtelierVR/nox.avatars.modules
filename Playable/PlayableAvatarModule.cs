@@ -265,7 +265,7 @@ namespace Nox.CCK.Avatars.Playable {
 					if (!playable.IsValid())
 						continue;
 
-					AnimationPlayableOutput fxOutput = AnimationPlayableOutput.Create(_graph, $"FX {controllers[entry].controller.name}", animator);
+					var fxOutput = AnimationPlayableOutput.Create(_graph, $"FX {controllers[entry].controller.name}", animator);
 					fxOutput.SetSourcePlayable(playable);
 					_outputs.Add(fxOutput);
 					Logger.LogDebug($"FX layer '{group.Key}': '{controllers[entry].controller.name}' bound to its own output (material properties)", tag: nameof(PlayableAvatarModule));
@@ -273,6 +273,9 @@ namespace Nox.CCK.Avatars.Playable {
 			}
 
 			_layersBuilt = true;
+
+			foreach (var maskedLayer in _layerMasks.Keys.ToArray())
+				ApplyLayerMask(maskedLayer);
 
 			await UniTask.NextFrame(cancellationToken: token);
 
@@ -438,6 +441,58 @@ namespace Nox.CCK.Avatars.Playable {
 			}
 
 			group.Mixer.SetInputWeight(index, Mathf.Clamp01(weight));
+		}
+
+		/// <summary>Masks applied on a layer (see <see cref="SetLayerMask"/>).</summary>
+		private readonly Dictionary<int, AvatarMask> _layerMasks = new();
+
+		/// <summary>
+		/// Restricts what a layer writes: a part switched off in the mask keeps the pose of the layers below, so the IK
+		/// can drive it while the animation poses the rest of the body. <c>null</c> removes the mask.
+		/// </summary>
+		public void SetLayerMask(int layer, AvatarMask mask) {
+			if (!IsValidLayer(layer))
+				return;
+
+			if (mask)
+				_layerMasks[layer] = mask;
+			else
+				_layerMasks.Remove(layer);
+
+			ApplyLayerMask(layer);
+		}
+
+		/// <summary>Whether a mask is set on a layer.</summary>
+		public bool HasLayerMask(int layer)
+			=> layer >= 0 && _layerMasks.ContainsKey(layer);
+
+		/// <summary>Pushes the mask of a layer on its mixer input (no mask: every bone is written).</summary>
+		private void ApplyLayerMask(int layer) {
+			if (!_mixer.IsValid() || _mixerIndices == null || layer < 0 || layer >= _mixerIndices.Length)
+				return;
+
+			_layerMasks.TryGetValue(layer, out var mask);
+
+			// The solver wants a mask, not a null one: an all-active mask is the "no mask" case.
+			_mixer.SetLayerMaskFromAvatarMask((uint)_mixerIndices[layer], mask ? mask : FullMask());
+		}
+
+		/// <summary>Mask with every humanoid part active, used when a layer has no mask.</summary>
+		private AvatarMask _fullMask;
+
+		private AvatarMask FullMask() {
+			if (_fullMask)
+				return _fullMask;
+
+			_fullMask = new AvatarMask();
+			foreach (AvatarMaskBodyPart part in System.Enum.GetValues(typeof(AvatarMaskBodyPart))) {
+				if (part == AvatarMaskBodyPart.LastBodyPart)
+					continue;
+
+				_fullMask.SetHumanoidBodyPartActive(part, true);
+			}
+
+			return _fullMask;
 		}
 
 		/// <summary>Index of the first layer matching the given key, or -1 when none matches.</summary>

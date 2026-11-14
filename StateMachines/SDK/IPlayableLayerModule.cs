@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace Nox.Avatars.StateMachines {
 	/// <summary>
 	/// Exposes control over an avatar's playable layers, i.e. the layers of the
@@ -72,5 +74,13 @@ namespace Nox.Avatars.StateMachines {
 
 		/// <summary>Stops (disables) the layer matching the given key.</summary>
 		public void StopLayer(string key, float blendDuration = 0f);
+
+		/// <summary>
+		/// Restricts what a layer writes, with a humanoid <see cref="AvatarMask"/>: a part switched off in the mask is no
+		/// longer posed by that layer, so its bone keeps the value of the layers below and the IK can drive it (a tracked
+		/// limb). This is the per-bone counterpart of stopping a layer: the animation keeps the rest of the body.
+		/// <c>null</c> removes the mask, i.e. the layer writes every bone again.
+		/// </summary>
+		public void SetLayerMask(int layer, AvatarMask mask);
 	}
 }
